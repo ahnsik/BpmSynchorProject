@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
+import javax.swing.JFileChooser;
 
 import java.awt.Dimension;
 
@@ -87,33 +88,22 @@ public class BpmSynchorWindow {
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("button [Set WAVE] was clicked.");
-//				File f = new File("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav");
-//				byte[] buffer = new byte[(int)f.length()];
-//
-//				try {
-//					System.out.println("read *.WAV file.");
-//					FileInputStream is;
-//					is = new FileInputStream("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav");
-//					is.read(buffer);
-//					System.out.println("read done.");
-//					is.close();
-//					waveSynchPane.setWaveData(buffer);
-//				} catch (FileNotFoundException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				} catch (IOException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
 
-
+				File f = showFileDialog();
+				if (f==null) {
+					System.out.println("File Not specified.");
+					return;
+				}
+				
 				byte[] Header = new byte[44];
-				byte[] Buffer = new byte[8*1024*1024];		// 8MB		//[1280*8];
+				byte[] Buffer = new byte[(int)f.length()];
 				try {
-					InputStream inputStream = new FileInputStream("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\kokuriko.wav");
+					FileInputStream is;
+					is = new FileInputStream( f );
 					int byteRead = -1;
-					byteRead = inputStream.read(Header);
-					byteRead = inputStream.read(Buffer);
+					byteRead = is.read(Header);
+					byteRead = is.read(Buffer);
+					is.close();
 
 					System.out.print( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[1]+"," + Buffer[2]+"," + Buffer[3]+"," + Buffer[4]+"," + Buffer[5]+"," + Buffer[6]+"," + Buffer[7]+"," + Buffer[8]+"," + Buffer[9]+"," + Buffer[10]+"," + Buffer[11]+"," + Buffer[12] );
 					if (waveSynchPane != null) {
@@ -126,6 +116,7 @@ public class BpmSynchorWindow {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+
 			}
 		});
 		JButton btnSetAlbumImage = new JButton("Set Album Image");
@@ -233,7 +224,7 @@ public class BpmSynchorWindow {
 		
 		JLabel imgAlbumImage = new JLabel("");
 		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
-		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+		imgAlbumImage.setIcon(new ImageIcon("./ukulele_icon.png"));
 		
 		JLabel lblNewLabel_2 = new JLabel("Unit Note:");
 		
@@ -383,5 +374,11 @@ public class BpmSynchorWindow {
 		waveSynchPane.setVisible(true);
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 		
+	}
+
+	public File showFileDialog() {
+		final JFileChooser fc = new JFileChooser();
+		fc.showOpenDialog(null);
+		return  fc.getSelectedFile();
 	}
 }
