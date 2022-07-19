@@ -40,7 +40,7 @@ public class WaveSynchPane extends Canvas
 
 	private int x_grid_unit = 24;		// GRID 1칸의 pixel 크기. -- depend on Zoom Size, Beats, BPM, etc...
 	private int beat_per_bar = 8;
-	private int time_grid = x_grid_unit*8;		// 시간 표시를 위한 frid 간격.
+	private int time_grid = x_grid_unit*8;		// 시간 표시를 위한 grid 간격.
 	private float wave_zoom = 0.01f;			// 최소값=최대축소율 = 0.001 까지만 할 것.==> 약 3분짜리 1곡을 1920 전체 화면에 그리는 배율.
 												// default 는 0.01 이 적당한 것으로 보인다. = 코쿠리코언덕 정도의 느린 음악에 따라 가기가 딱 좋다. 
 
