@@ -1,6 +1,7 @@
 package myproject;
 
 import java.awt.EventQueue;
+import java.text.ParseException;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -10,16 +11,12 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.LineBorder;
-import java.awt.Color;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.UIManager;
+import javax.swing.text.MaskFormatter;
+
+import java.awt.Dimension;
+
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import java.awt.FlowLayout;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
@@ -28,16 +25,14 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.BoxLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.GridLayout;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.RowSpec;
-import net.miginfocom.swing.MigLayout;
+import javax.swing.JFormattedTextField;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.awt.event.ActionEvent;
 
 public class BpmSynchorWindow {
 
@@ -45,7 +40,7 @@ public class BpmSynchorWindow {
 	private JTextField tfComment;
 	private JTextField textField_1;
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
-	private JTextField tfJumpTo;
+	private WaveSynchPane waveSynchPane;
 
 	/**
 	 * Launch the application.
@@ -76,8 +71,11 @@ public class BpmSynchorWindow {
 	private void initialize() {
 		frmUkeBpmSynchronizer = new JFrame();
 		frmUkeBpmSynchronizer.setTitle("UKE Bpm Synchronizer");
-		frmUkeBpmSynchronizer.setBounds(100, 100, 935, 580);
+		frmUkeBpmSynchronizer.setBounds(100, 100, 935, 468);
 		frmUkeBpmSynchronizer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmUkeBpmSynchronizer.setMinimumSize(new Dimension(935, 580));
+		
+		waveSynchPane = new WaveSynchPane();
 		
 		JPanel panelFileManager = new JPanel();
 		panelFileManager.setBorder(new BevelBorder(BevelBorder.RAISED));
@@ -85,7 +83,51 @@ public class BpmSynchorWindow {
 		
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
-		JButton btnSetMp3 = new JButton("Set MP3");
+		JButton btnSetWave = new JButton("Set WAVE");
+		btnSetWave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("button [Set WAVE] was clicked.");
+//				File f = new File("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav");
+//				byte[] buffer = new byte[(int)f.length()];
+//
+//				try {
+//					System.out.println("read *.WAV file.");
+//					FileInputStream is;
+//					is = new FileInputStream("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav");
+//					is.read(buffer);
+//					System.out.println("read done.");
+//					is.close();
+//					waveSynchPane.setWaveData(buffer);
+//				} catch (FileNotFoundException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
+
+
+				byte[] Header = new byte[44];
+				byte[] Buffer = new byte[8*1024*1024];		// 8MB		//[1280*8];
+				try {
+					InputStream inputStream = new FileInputStream("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\kokuriko.wav");
+					int byteRead = -1;
+					byteRead = inputStream.read(Header);
+					byteRead = inputStream.read(Buffer);
+
+					System.out.print( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[1]+"," + Buffer[2]+"," + Buffer[3]+"," + Buffer[4]+"," + Buffer[5]+"," + Buffer[6]+"," + Buffer[7]+"," + Buffer[8]+"," + Buffer[9]+"," + Buffer[10]+"," + Buffer[11]+"," + Buffer[12] );
+					if (waveSynchPane != null) {
+						waveSynchPane.setWaveData(Buffer);
+					}
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		JButton btnSetAlbumImage = new JButton("Set Album Image");
 		JButton btnWriteFile = new JButton("WriteFile");
 		GroupLayout gl_panelFileManager = new GroupLayout(panelFileManager);
@@ -97,7 +139,7 @@ public class BpmSynchorWindow {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnOpenFile)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnSetMp3)
+					.addComponent(btnSetWave)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnSetAlbumImage)
 					.addPreferredGap(ComponentPlacement.RELATED, 348, Short.MAX_VALUE)
@@ -112,7 +154,7 @@ public class BpmSynchorWindow {
 				.addGroup(gl_panelFileManager.createParallelGroup(Alignment.BASELINE)
 					.addComponent(btnSetAlbumImage)
 					.addComponent(btnWriteFile)
-					.addComponent(btnSetMp3))
+					.addComponent(btnSetWave))
 		);
 		panelFileManager.setLayout(gl_panelFileManager);
 		
@@ -182,9 +224,9 @@ public class BpmSynchorWindow {
 		textField_1 = new JTextField();
 		textField_1.setColumns(10);
 		
-		JLabel lblMp3FileName = new JLabel("MP3 File:");
+		JLabel lblWaveFileName = new JLabel("WAVE File:");
 		
-		JLabel lblNewLabel_5 = new JLabel("Use [Set MP3] button.");
+		JLabel lblWaveFilePath = new JLabel("Use [Set WAVE] button.");
 		
 		JLabel lblAlbumImage = new JLabel("Album Image:");
 		lblAlbumImage.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -198,7 +240,7 @@ public class BpmSynchorWindow {
 		JRadioButton rdbtnQuaver = new JRadioButton("quaver (\u266A 8\uBD84\uC74C\uD45C)");
 		btngrpQuaver.add(rdbtnQuaver);
 		
-		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("seni-quaver (\u266C 16\uBD84\uC74C\uD45C)");
+		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
 		btngrpQuaver.add(rdbtnNewRadioButton_1);
 		
 		JLabel lblBeat = new JLabel("Beats:");
@@ -231,8 +273,15 @@ public class BpmSynchorWindow {
 		
 		JLabel lblJumpTo = new JLabel("Jump to");
 		
-		tfJumpTo = new JTextField();
-		tfJumpTo.setColumns(10);
+		JFormattedTextField tfJumpToFormatted = new JFormattedTextField();
+		tfJumpToFormatted.setText("##:##.###");
+		tfJumpToFormatted.setFocusLostBehavior(JFormattedTextField.COMMIT);
+		try {
+			MaskFormatter  formatter1 = new MaskFormatter("##:##.###");
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
 			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
@@ -248,7 +297,7 @@ public class BpmSynchorWindow {
 							.addGap(18)
 							.addComponent(lblJumpTo)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfJumpTo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+							.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
@@ -262,7 +311,7 @@ public class BpmSynchorWindow {
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(lblSongTitle)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(textField_1, GroupLayout.DEFAULT_SIZE, 341, Short.MAX_VALUE))
+									.addComponent(textField_1, GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE))
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(lblNewLabel_2)
 									.addPreferredGap(ComponentPlacement.RELATED)
@@ -283,9 +332,9 @@ public class BpmSynchorWindow {
 											.addComponent(comboBox_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 											.addGap(3))
 										.addGroup(gl_panelValueSetting.createSequentialGroup()
-											.addComponent(lblMp3FileName)
+											.addComponent(lblWaveFileName)
 											.addPreferredGap(ComponentPlacement.RELATED)
-											.addComponent(lblNewLabel_5, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE))))
+											.addComponent(lblWaveFilePath, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE))))
 								.addComponent(lblAlbumImage, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE))
 							.addGap(18)
 							.addComponent(imgAlbumImage)
@@ -293,8 +342,8 @@ public class BpmSynchorWindow {
 					.addGap(0))
 		);
 		gl_panelValueSetting.setVerticalGroup(
-			gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, gl_panelValueSetting.createSequentialGroup()
+			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panelValueSetting.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 						.addComponent(imgAlbumImage)
@@ -308,8 +357,8 @@ public class BpmSynchorWindow {
 								.addComponent(lblNewLabel_2)
 								.addComponent(rdbtnQuaver)
 								.addComponent(rdbtnNewRadioButton_1)
-								.addComponent(lblNewLabel_5)
-								.addComponent(lblMp3FileName))
+								.addComponent(lblWaveFilePath)
+								.addComponent(lblWaveFileName))
 							.addPreferredGap(ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
 								.addComponent(lblBeat)
@@ -326,15 +375,13 @@ public class BpmSynchorWindow {
 								.addComponent(btnPlay)
 								.addComponent(btnPause)
 								.addComponent(lblJumpTo)
-								.addComponent(tfJumpTo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
 					.addContainerGap())
 		);
 		panelValueSetting.setLayout(gl_panelValueSetting);
 
-		WaveSynchPane waveSynchPane = new WaveSynchPane();
 		waveSynchPane.setVisible(true);
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 		
 	}
-
 }
