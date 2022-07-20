@@ -14,6 +14,7 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
 
 public class WaveSynchPane extends JPanel
 		implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
@@ -32,6 +33,8 @@ public class WaveSynchPane extends JPanel
 	private static final int TAB_AREA_HEIGHT = 66;
 	private static final int CHORD_AREA_THICKNESS = FONT_HEIGHT;
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
+	private static final float ZOOM_IN_LIMIT = 0.5f;
+	private static final float ZOOM_OUT_LIMIT = 0.002f;
 	
 	private int canvas_width;
 	private int canvas_height;
@@ -46,7 +49,6 @@ public class WaveSynchPane extends JPanel
 	private int start_index = 0;		// 시간 표시를 위한 grid 간격.
 	private float wave_zoom = 0.0125f;			// 최소값=최대축소율 = 0.001 까지만 할 것.==> 약 3분짜리 1곡을 1920 전체 화면에 그리는 배율.
 												// default 는 0.01 이 적당한 것으로 보인다. = 코쿠리코언덕 정도의 느린 음악에 따라 가기가 딱 좋다.
-	
 
 	private byte[] wave_data;
 
@@ -146,12 +148,16 @@ public class WaveSynchPane extends JPanel
 //		}
 
 		if (wave_data!=null) {
-			int i, j, value, max, min, xpos;
+			int i, j, value, max, min, prev_max, prev_min, xpos;
 			int num_per_px = (int)(1.0f/wave_zoom);		// 1픽셀넓이의 wave data들 갯수
 //			System.out.println("num_per_px = "+num_per_px);
 			xpos = x;
 			i=start_index;		// start index of wave data
+			max=0;
+			min=255;
 			while( (i+num_per_px)<wave_data.length) {
+				prev_max = max;
+				prev_min = min;
 				max=0;
 				min=255;
 				for (j=0; j<num_per_px; j++) {
@@ -160,6 +166,7 @@ public class WaveSynchPane extends JPanel
 					min=(min>value)?value:min;
 				}
 				g.drawLine( xpos, center_y+ min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
+				g.drawLine( xpos, center_y+ prev_min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
 				// 다음픽셀로 넘어갑시다.
 				i+=num_per_px;
 				xpos++;
@@ -257,22 +264,64 @@ public class WaveSynchPane extends JPanel
 		System.out.println("WAVE DATA SET. : length=" + data.length);
 		wave_data = data;
 	}
+
+	public void setBpm(int bpm) {
+		
+	}
 	
 	public void keyTyped(KeyEvent e) {
+		System.out.println("WaveSynchPane KeyTyped:" + e.getKeyCode() );
 	}
 	public void keyPressed(KeyEvent e) {
+		System.out.println("WaveSynchPane KeyPressed:" + e.getKeyCode() );
 	}
 	public void keyReleased(KeyEvent e) {
+		System.out.println("WaveSynchPane KeyReleased:" + e.getKeyCode() );
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
+		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
+		if ( e.getWheelRotation() > 0) {	// 확대
+			wave_zoom *= 1.5f;
+//			x_grid_unit *= 1.5f;
+			if (wave_zoom > ZOOM_IN_LIMIT) {			// 1.0f) {
+				System.out.println("Zoom in limited.");
+				wave_zoom = ZOOM_IN_LIMIT;
+			}
+		} else if ( e.getWheelRotation() < 0) {	// 축소
+			wave_zoom *= 0.75f;
+//			x_grid_unit *= 0.75f;
+			if (wave_zoom < ZOOM_OUT_LIMIT) {			// 0.002f) {
+				System.out.println("Zoom out limited.");
+				wave_zoom = ZOOM_OUT_LIMIT;
+			}
+		}
+		System.out.println("wave_zoom = " + wave_zoom);
+//		super.invalidate();
+		repaint();
 	}
+
+	private static Point mousePt;
+	private static int prev_start_index;
+
 	public void mouseDragged(MouseEvent e) {
+		if (mousePt==null)
+			return;
+		int num_per_px = (int)(1.0f/wave_zoom);		// 1픽셀넓이의 wave data들 갯수
+		start_index = prev_start_index - (e.getX()-mousePt.x)*num_per_px ;
+		if (start_index < 0)
+			start_index = 0;
+		if (start_index >= wave_data.length-time_grid)
+			start_index = wave_data.length-time_grid;
+		repaint();
 	}
 	public void mouseMoved(MouseEvent e) {
 	}
 	public void mouseClicked(MouseEvent e) {
 	}
 	public void mousePressed(MouseEvent e) {
+		mousePt = e.getPoint();
+		prev_start_index = start_index;
+		repaint();
 	}
 	public void mouseReleased(MouseEvent e) {
 	}

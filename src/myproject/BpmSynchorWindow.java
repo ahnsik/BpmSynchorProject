@@ -28,6 +28,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JFormattedTextField;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -273,6 +274,11 @@ public class BpmSynchorWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		JLabel lblPlayingOffset = new JLabel("playing offset");
+		
+		JFormattedTextField formattedTextField = new JFormattedTextField();
+		formattedTextField.setText("##:##.###");
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
 			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
@@ -288,7 +294,11 @@ public class BpmSynchorWindow {
 							.addGap(18)
 							.addComponent(lblJumpTo)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE))
+							.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(lblPlayingOffset)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(formattedTextField, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
@@ -302,7 +312,7 @@ public class BpmSynchorWindow {
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(lblSongTitle)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(textField_1, GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE))
+									.addComponent(textField_1, GroupLayout.DEFAULT_SIZE, 533, Short.MAX_VALUE))
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(lblNewLabel_2)
 									.addPreferredGap(ComponentPlacement.RELATED)
@@ -366,12 +376,22 @@ public class BpmSynchorWindow {
 								.addComponent(btnPlay)
 								.addComponent(btnPause)
 								.addComponent(lblJumpTo)
-								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblPlayingOffset)
+								.addComponent(formattedTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
 					.addContainerGap())
 		);
 		panelValueSetting.setLayout(gl_panelValueSetting);
 
 		waveSynchPane.setVisible(true);
+		waveSynchPane.setFocusable(true);
+		waveSynchPane.setRequestFocusEnabled(true);
+		waveSynchPane.grabFocus();
+
+		waveSynchPane.addMouseListener(waveSynchPane);
+		waveSynchPane.addMouseWheelListener(waveSynchPane);
+		waveSynchPane.addMouseMotionListener(waveSynchPane);
+		waveSynchPane.addKeyListener(waveSynchPane);		// KeyListener
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 		
 	}
