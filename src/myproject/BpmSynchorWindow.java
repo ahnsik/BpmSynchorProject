@@ -87,7 +87,7 @@ public class BpmSynchorWindow {
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("button [Set WAVE] was clicked.");
+//				System.out.println("button [Set WAVE] was clicked.");
 
 				File f = showFileDialog();
 				if (f==null) {
@@ -105,7 +105,7 @@ public class BpmSynchorWindow {
 					byteRead = is.read(Buffer);
 					is.close();
 
-					System.out.print( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[1]+"," + Buffer[2]+"," + Buffer[3]+"," + Buffer[4]+"," + Buffer[5]+"," + Buffer[6]+"," + Buffer[7]+"," + Buffer[8]+"," + Buffer[9]+"," + Buffer[10]+"," + Buffer[11]+"," + Buffer[12] );
+//					System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[1]+"," + Buffer[2]+"," + Buffer[3]+"," + Buffer[4]+"," + Buffer[5]+"," + Buffer[6]+"," + Buffer[7]+"," + Buffer[8]+"," + Buffer[9]+"," + Buffer[10]+"," + Buffer[11]+"," + Buffer[12] );
 					if (waveSynchPane != null) {
 						waveSynchPane.setWaveData(Buffer);
 					}
