@@ -10,7 +10,6 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPanel;
 
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -25,7 +24,6 @@ public class WaveSynchPane extends JPanel
 	private static final long serialVersionUID = 7740732731922064721L;
 	private static final int X_OFFSET = 80;
 	private static final int X_PADDING = 16;
-	private static final int Y_PADDING = 4;
 	private static final int FONT_HEIGHT = 28;
 	private static final int RULER_THICKNESS = 16;
 	
@@ -35,15 +33,22 @@ public class WaveSynchPane extends JPanel
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
 	private static final float ZOOM_IN_LIMIT = 0.5f;
 	private static final float ZOOM_OUT_LIMIT = 0.002f;
+	private static final int X_CELL_WHEN_60BPM = 24;		/* 60BPM, 4/4박자 일때, 16분음표 표시를 위한 셀 가로 크기 */
 	
 	private int canvas_width;
 	private int canvas_height;
 
 	/**		 */
-	private static Font gridFont, labelFont, contentsFont, bigFont;	
-	private static Color bg_color, rulerColor, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
+	private static Font gridFont, labelFont;	
+	private static Color rulerColor, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
 
-	private int x_grid_unit = 24;		// GRID 1칸의 pixel 크기. -- depend on Zoom Size, Beats, BPM, etc...
+	//// 설정값의 정의
+	private int value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
+	private int value_beat = 0;	//	'0' = quaver(8분음표), '1'=semi-quaver(16분음표) 
+	private int value_bpm = 80;	// beats per minute.
+
+	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1칸의 pixel 크기. -- depend on Zoom Size, Beats, BPM, etc...
+			// 60 bpm, quaver(8분음표), 기본화면크기에  
 	private int beat_per_bar = 8;
 	private int time_grid = x_grid_unit*8;		// 시간 표시를 위한 grid 간격.
 	private int start_index = 0;		// 시간 표시를 위한 grid 간격.
@@ -58,10 +63,8 @@ public class WaveSynchPane extends JPanel
 
 		gridFont = new Font("Monospaced", Font.BOLD, 9);
 		labelFont =  new Font("Tahoma", Font.PLAIN, 12);
-		contentsFont = new Font("Tahoma", Font.BOLD|Font.ITALIC, 24);
-		bigFont = new Font("Tahoma", Font.BOLD|Font.ITALIC, 36);
 
-		bg_color = new Color(240, 240, 240);
+//		bg_color = new Color(240, 240, 240);
 		rulerColor = Color.LIGHT_GRAY;
 		rulerFontColor = Color.GRAY;
 		beatBgColor = new Color(220,220,220);
@@ -73,7 +76,7 @@ public class WaveSynchPane extends JPanel
 		technicAreaColor = new Color(200,240,220);
 		technicAreaColor_H = new Color(200,250,230);  
 	}
-	
+
 	public void paintComponent(Graphics g) {
 		canvas_width = getWidth();
 		canvas_height = getHeight();
@@ -148,7 +151,7 @@ public class WaveSynchPane extends JPanel
 //		}
 
 		if (wave_data!=null) {
-			int i, j, value, max, min, prev_max, prev_min, xpos;
+			int i, j, value, max, min, prev_min, xpos;
 			int num_per_px = (int)(1.0f/wave_zoom);		// 1픽셀넓이의 wave data들 갯수
 //			System.out.println("num_per_px = "+num_per_px);
 			xpos = x;
@@ -156,7 +159,6 @@ public class WaveSynchPane extends JPanel
 			max=0;
 			min=255;
 			while( (i+num_per_px)<wave_data.length) {
-				prev_max = max;
 				prev_min = min;
 				max=0;
 				min=255;
@@ -177,6 +179,8 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
+		System.out.println("x_grid_unit="+x_grid_unit+", value_bpm="+value_bpm );
+
 		String label="chord:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -266,9 +270,48 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void setBpm(int bpm) {
-		
+		System.out.println("set BPM: " + bpm);
+		value_bpm = bpm;
+
+		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
+		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+
+		// 60bpm 4/4박자 1초 = 48*8 = 384px ==> 1beat 는 48px,		60bpm은, 1/60으로 봐야 하므로,   
+		// 80bpm 4/4박자 1초 = 48*8 = 384px ==> 1beat 는 ??px,  	80bpm은 1/80으로 해서,  1/60:48px = 1/80:??px  ??=48*60/80,  즉,  48*60/bpm 으로 정한다. 
+		repaint();
 	}
-	
+
+	public void setQuaver(int isSemiQuaver) {	// 0=8분음표, 1=16분음표
+		System.out.println("set Quaver: " + isSemiQuaver);
+		value_beat = isSemiQuaver;
+
+		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
+		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+		repaint();
+	}
+
+	public void setMeter(int meter) {	// '0'=2/4박자, '1'=3/4박자, '2'=4/4박자, '3'=6/8박자
+		value_meter = meter; 
+		switch(value_meter) {
+			case 0:		// 2/4박자
+				System.out.println("setMeter: 2/4박자.." );
+				break;
+			case 1:		// 3/4박자
+				System.out.println("setMeter: 3/4박자.." );
+				break;
+			case 4:		// 6/8박자
+				System.out.println("setMeter: 6/8박자.." );
+				break;
+			default:	// 4/4박자
+				System.out.println("setMeter: 4/4박자.." );
+				break;
+		}
+//		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
+//		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+		repaint();
+	}
+
+
 	public void keyTyped(KeyEvent e) {
 		System.out.println("WaveSynchPane KeyTyped:" + e.getKeyCode() );
 	}

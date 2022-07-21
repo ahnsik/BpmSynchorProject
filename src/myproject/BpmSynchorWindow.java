@@ -35,12 +35,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.awt.event.ActionEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class BpmSynchorWindow {
 
 	private JFrame frmUkeBpmSynchronizer;
 	private JTextField tfComment;
-	private JTextField textField_1;
+	private JTextField tfSongTitle;
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
 	private WaveSynchPane waveSynchPane;
 
@@ -73,7 +75,7 @@ public class BpmSynchorWindow {
 	private void initialize() {
 		frmUkeBpmSynchronizer = new JFrame();
 		frmUkeBpmSynchronizer.setTitle("UKE Bpm Synchronizer");
-		frmUkeBpmSynchronizer.setBounds(100, 100, 935, 468);
+		frmUkeBpmSynchronizer.setBounds(100, 100, 1018, 580);
 		frmUkeBpmSynchronizer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmUkeBpmSynchronizer.setMinimumSize(new Dimension(935, 580));
 		
@@ -213,8 +215,8 @@ public class BpmSynchorWindow {
 		
 		JLabel lblSongTitle = new JLabel("Song Title");
 		
-		textField_1 = new JTextField();
-		textField_1.setColumns(10);
+		tfSongTitle = new JTextField();
+		tfSongTitle.setColumns(10);
 		
 		JLabel lblWaveFileName = new JLabel("WAVE File:");
 		
@@ -224,38 +226,47 @@ public class BpmSynchorWindow {
 		lblAlbumImage.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		JLabel imgAlbumImage = new JLabel("");
+		imgAlbumImage.setSize(128,72);		// setBounds(900, 100, 128, 72);
 		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
-		imgAlbumImage.setIcon(new ImageIcon("./ukulele_icon.png"));
+		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
 		
-		JLabel lblNewLabel_2 = new JLabel("Unit Note:");
+		JLabel lblBeats = new JLabel("Beat:");
+		lblBeats.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		JRadioButton rdbtnQuaver = new JRadioButton("quaver (\u266A 8\uBD84\uC74C\uD45C)");
 		btngrpQuaver.add(rdbtnQuaver);
 		
-		JRadioButton rdbtnNewRadioButton_1 = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
-		btngrpQuaver.add(rdbtnNewRadioButton_1);
+		JRadioButton rdbtnSemiQuaver = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
+		btngrpQuaver.add(rdbtnSemiQuaver);
 		
-		JLabel lblBeat = new JLabel("Beats:");
-		lblBeat.setHorizontalAlignment(SwingConstants.RIGHT);
+		JLabel lblMeter = new JLabel("Meter:");
+		lblMeter.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"2/4", "3/4", "4/4", "6/8"}));
+		JComboBox cbMeter = new JComboBox();
+		cbMeter.setModel(new DefaultComboBoxModel(new String[] {"2/4", "3/4", "4/4", "6/8"}));
 		
 		JLabel lblBpm = new JLabel("BPM:");
 		lblBpm.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		JSpinner spnrBpm = new JSpinner();
+		spnrBpm.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				System.out.println("spinner Changed Handler.." );
+				//				spnrBpm.getNumber();
+				waveSynchPane.setBpm(80);
+			}
+		});
 		spnrBpm.setModel(new SpinnerNumberModel(80, 20, 280, 1));
 		
 		JLabel lblCategory = new JLabel("Category:");
 		
-		JComboBox comboBox_1 = new JComboBox();
-		comboBox_1.setModel(new DefaultComboBoxModel(new String[] {"Stroke (Rhythm)", "Melody", "FingerStyle"}));
+		JComboBox cbCategory = new JComboBox();
+		cbCategory.setModel(new DefaultComboBoxModel(new String[] {"Stroke (Rhythm)", "Melody", "FingerStyle"}));
 		
 		JLabel lblLevel = new JLabel("Level:");
 		
-		JComboBox comboBox_2 = new JComboBox();
-		comboBox_2.setModel(new DefaultComboBoxModel(new String[] {"\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF"}));
+		JComboBox cbLevel = new JComboBox();
+		cbLevel.setModel(new DefaultComboBoxModel(new String[] {"\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CB\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CB\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CB\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CB\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CB\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CB", "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF"}));
 		
 		JButton btnToStart = new JButton("Move to Start");
 		
@@ -300,25 +311,23 @@ public class BpmSynchorWindow {
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(formattedTextField, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
+							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(lblSongTitle)
+								.addComponent(lblMeter, GroupLayout.DEFAULT_SIZE, 49, Short.MAX_VALUE)
+								.addComponent(lblBeats, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
-									.addComponent(lblBeat, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addGap(21)
-									.addComponent(lblBpm, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE))
-								.addGroup(gl_panelValueSetting.createSequentialGroup()
-									.addComponent(lblSongTitle)
-									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(textField_1, GroupLayout.DEFAULT_SIZE, 533, Short.MAX_VALUE))
-								.addGroup(gl_panelValueSetting.createSequentialGroup()
-									.addComponent(lblNewLabel_2)
-									.addPreferredGap(ComponentPlacement.RELATED)
 									.addComponent(rdbtnQuaver)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(rdbtnNewRadioButton_1)))
+									.addComponent(rdbtnSemiQuaver))
+								.addComponent(tfSongTitle, GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+								.addGroup(gl_panelValueSetting.createSequentialGroup()
+									.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addGap(18)
+									.addComponent(lblBpm, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
@@ -326,50 +335,50 @@ public class BpmSynchorWindow {
 									.addGap(4)
 									.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
 										.addGroup(gl_panelValueSetting.createSequentialGroup()
-											.addComponent(comboBox_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+											.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 											.addGap(18)
 											.addComponent(lblLevel)
 											.addPreferredGap(ComponentPlacement.RELATED)
-											.addComponent(comboBox_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+											.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 											.addGap(3))
 										.addGroup(gl_panelValueSetting.createSequentialGroup()
 											.addComponent(lblWaveFileName)
 											.addPreferredGap(ComponentPlacement.RELATED)
 											.addComponent(lblWaveFilePath, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE))))
 								.addComponent(lblAlbumImage, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE))
-							.addGap(18)
-							.addComponent(imgAlbumImage)
-							.addGap(12)))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(imgAlbumImage, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)))
 					.addGap(0))
 		);
 		gl_panelValueSetting.setVerticalGroup(
-			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
+			gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_panelValueSetting.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
-						.addComponent(imgAlbumImage)
+					.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
+						.addComponent(imgAlbumImage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(textField_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblSongTitle)
-								.addComponent(lblAlbumImage))
+								.addComponent(lblAlbumImage)
+								.addComponent(tfSongTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblNewLabel_2)
-								.addComponent(rdbtnQuaver)
-								.addComponent(rdbtnNewRadioButton_1)
 								.addComponent(lblWaveFilePath)
-								.addComponent(lblWaveFileName))
+								.addComponent(lblWaveFileName)
+								.addComponent(lblBeats)
+								.addComponent(rdbtnQuaver)
+								.addComponent(rdbtnSemiQuaver))
 							.addPreferredGap(ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblBeat)
-								.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblBpm)
-								.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblMeter)
 								.addComponent(lblCategory)
-								.addComponent(comboBox_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblLevel)
-								.addComponent(comboBox_2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblBpm)
+								.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
 								.addComponent(btnToStart)
