@@ -248,12 +248,12 @@ public class BpmSynchorWindow {
 		JLabel lblBpm = new JLabel("BPM:");
 		lblBpm.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		JSpinner spnrBpm = new JSpinner();
+		final JSpinner spnrBpm = new JSpinner();
 		spnrBpm.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				System.out.println("spinner Changed Handler.." );
+				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
 				//				spnrBpm.getNumber();
-				waveSynchPane.setBpm(80);
+				waveSynchPane.setBpm( Integer.parseInt(""+spnrBpm.getValue()) );
 			}
 		});
 		spnrBpm.setModel(new SpinnerNumberModel(80, 20, 280, 1));
