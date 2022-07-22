@@ -234,9 +234,20 @@ public class BpmSynchorWindow {
 		lblBeats.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		JRadioButton rdbtnQuaver = new JRadioButton("quaver (\u266A 8\uBD84\uC74C\uD45C)");
+		rdbtnQuaver.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+//				JRadioButton btn=(JRadioButton)e.getSource();
+				waveSynchPane.setQuaver( 1 );	// 1 = semi-quaver
+			}
+		});
 		btngrpQuaver.add(rdbtnQuaver);
 		
 		JRadioButton rdbtnSemiQuaver = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
+		rdbtnSemiQuaver.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				waveSynchPane.setQuaver( 0 );	// 1 = semi-quaver
+			}
+		});
 		btngrpQuaver.add(rdbtnSemiQuaver);
 		
 		JLabel lblMeter = new JLabel("Meter:");

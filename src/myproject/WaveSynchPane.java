@@ -103,7 +103,7 @@ public class WaveSynchPane extends JPanel
 
 		// WAVEFORM draw
 		drawWaveData(g, X_OFFSET, 10+RULER_THICKNESS, canvas_width-X_OFFSET-X_PADDING, ypos-10-RULER_THICKNESS );
-
+		g.dispose();
 	}
 
 	public void drawRuler(Graphics g, int x, int y, int w, int h) {
@@ -273,8 +273,9 @@ public class WaveSynchPane extends JPanel
 		System.out.println("set BPM: " + bpm);
 		value_bpm = bpm;
 
+		
 		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
-		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+		x_grid_unit *= (value_beat!=0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
 
 		// 60bpm 4/4박자 1초 = 48*8 = 384px ==> 1beat 는 48px,		60bpm은, 1/60으로 봐야 하므로,   
 		// 80bpm 4/4박자 1초 = 48*8 = 384px ==> 1beat 는 ??px,  	80bpm은 1/80으로 해서,  1/60:48px = 1/80:??px  ??=48*60/80,  즉,  48*60/bpm 으로 정한다. 
@@ -286,7 +287,7 @@ public class WaveSynchPane extends JPanel
 		value_beat = isSemiQuaver;
 
 		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
-		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+		x_grid_unit *= (value_beat!=0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
 		repaint();
 	}
 
@@ -307,7 +308,7 @@ public class WaveSynchPane extends JPanel
 				break;
 		}
 //		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16분음표 기준.
-//		x_grid_unit *= (value_beat==0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
+//		x_grid_unit *= (value_beat!=0)?2:1;			// 8분음표 기준이라면 2배 크기로 함.
 		repaint();
 	}
 
