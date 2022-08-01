@@ -21,6 +21,14 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -29,6 +37,8 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.JFormattedTextField;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -84,33 +94,116 @@ public class BpmSynchorWindow {
 		JPanel panelFileManager = new JPanel();
 		panelFileManager.setBorder(new BevelBorder(BevelBorder.RAISED));
 		frmUkeBpmSynchronizer.getContentPane().add(panelFileManager, BorderLayout.NORTH);
-		
+
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-//				System.out.println("button [Set WAVE] was clicked.");
 
 				File f = showFileDialog();
 				if (f==null) {
 					System.out.println("File Not specified.");
 					return;
 				}
-				
-				byte[] Header = new byte[44];
-				byte[] Buffer = new byte[(int)f.length()];
+
+				System.out.println("Selected File:" + f.getPath() );
+/*	-- MP3 파일인 경우.	*
+				byte[] fileBuffer = new byte[(int)f.length()];
+				int byteRead = -1;
+
 				try {
 					FileInputStream is;
 					is = new FileInputStream( f );
+					byteRead = is.read(fileBuffer);
+					is.close();
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				try {
+//					byte [] Buffer = getAudioDataBytes(f, new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 8000, 8, 1, 1, 8000, false) );
+					byte [] Buffer = getAudioDataBytes(f, new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 1, byteRead, false) );
+					if (waveSynchPane != null) {
+						waveSynchPane.setWaveData( Buffer);
+						frmUkeBpmSynchronizer.repaint();
+					}
+				} catch (IllegalArgumentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (UnsupportedAudioFileException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} 
+*/
+/*	-- WAV 파일인 경우.	*/
+				byte[] Header = new byte[44];
+				byte[] Buffer = new byte[(int)f.length()];
+
+				try {
+					FileInputStream is;
+
+					is = new FileInputStream( f );
+
 					int byteRead = -1;
-					byteRead = is.read(Header);
+					byteRead = is.read(Header);			// *.wav파일 헤더포맷 https://anythingcafe.tistory.com/2
+					System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4바이트 이지만 Header 크기는 그리 크지 않으므로, 하위 2바이트만. (little endian)
+					System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// 채널 수 : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
+					System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
+					System.out.println("byte rate =1초당 byte 수:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
+					System.out.println("Sample당 bit수:"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
+					System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
+					
 					byteRead = is.read(Buffer);
 					is.close();
 
-//					System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[1]+"," + Buffer[2]+"," + Buffer[3]+"," + Buffer[4]+"," + Buffer[5]+"," + Buffer[6]+"," + Buffer[7]+"," + Buffer[8]+"," + Buffer[9]+"," + Buffer[10]+"," + Buffer[11]+"," + Buffer[12] );
+					byte[] wholeData = new byte[Header.length+Buffer.length];
+					for (int i=0; i<Header.length; i++) {
+						wholeData[i] = Header[i];
+					}
+					for (int i=0; i<Buffer.length; i++) {
+						wholeData[Header.length+i] = Buffer[i];
+					}
+					WAVPlay(wholeData);
+
+					int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
+					int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
+					int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
+					int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1개 Sample 당 byte 수. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+					System.out.println("sample stripe = "+block_align );	
+					byte[] rawBuffer;
+					
+					if (num_of_channel==1) {		// mono 채널
+						if (num_bits_of_sample ==8 ) {	// 8bit 샘플
+							waveSynchPane.setWaveData(Buffer);
+							frmUkeBpmSynchronizer.repaint();		// 버퍼를 그대로 그냥 전달해도 됨.
+							return;
+						} else {					// 16bit 샘플이면, 상위 8비트만 처리.
+							rawBuffer = new byte[(byteRead/block_align)];
+							for (int i=0; i<byteRead-block_align; i+= block_align ) {
+								rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] 한 거는, 16bit 샘플을 8비트 샘플로 처리하기 위함. 
+							}
+						}
+					} else {		// stereo 채널 또는 다채널.	// 원래는 여기서도 16bit 샘플인지 판단해야 하지만, 그냥 8bit 인 경우에도 1바이트 손해볼 뿐이므로 그냥 넘어가자.
+						rawBuffer = new byte[(byteRead/block_align)];
+						for (int i=0; i<byteRead-block_align; i+= block_align ) {
+							rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] 한 거는, 16bit 샘플을 8비트 샘플로 처리하기 위함. 
+						}
+					}
+
+					System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[4]+"," + Buffer[8]+"," + Buffer[12]+"," + Buffer[16]+"," + Buffer[20]+"," + Buffer[24]+"," + Buffer[28]+"," + Buffer[32]+"," + Buffer[36]+"," + Buffer[40]+"," + Buffer[44]+"," + Buffer[48] );
+					System.out.println( "Number of byteRead="+ (byteRead/block_align) + " : " + rawBuffer[0]+"," + rawBuffer[1]+"," + rawBuffer[2]+"," + rawBuffer[3]+"," + rawBuffer[4]+"," + rawBuffer[5]+"," + rawBuffer[6]+"," + rawBuffer[7]+"," + rawBuffer[8]+"," + rawBuffer[9]+"," + rawBuffer[10]+"," + rawBuffer[11]+"," + rawBuffer[12] );
+
 					if (waveSynchPane != null) {
-						waveSynchPane.setWaveData(Buffer);
+						waveSynchPane.setWaveData(rawBuffer);
+						frmUkeBpmSynchronizer.repaint();
 					}
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
@@ -237,7 +330,7 @@ public class BpmSynchorWindow {
 		rdbtnQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 //				JRadioButton btn=(JRadioButton)e.getSource();
-				waveSynchPane.setQuaver( 1 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( 0 );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnQuaver);
@@ -245,7 +338,7 @@ public class BpmSynchorWindow {
 		JRadioButton rdbtnSemiQuaver = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
 		rdbtnSemiQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				waveSynchPane.setQuaver( 0 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( 1 );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnSemiQuaver);
@@ -267,7 +360,7 @@ public class BpmSynchorWindow {
 				waveSynchPane.setBpm( Integer.parseInt(""+spnrBpm.getValue()) );
 			}
 		});
-		spnrBpm.setModel(new SpinnerNumberModel(80, 20, 280, 1));
+		spnrBpm.setModel(new SpinnerNumberModel(60, 20, 280, 1));
 		
 		JLabel lblCategory = new JLabel("Category:");
 		
@@ -421,4 +514,284 @@ public class BpmSynchorWindow {
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
+
+	public static byte [] getAudioDataBytes(File sourceFile, AudioFormat audioFormat) throws UnsupportedAudioFileException, IllegalArgumentException, Exception{
+
+        ByteArrayInputStream bais = null;
+        ByteArrayOutputStream baos = null;
+        AudioInputStream sourceAIS = null;
+        AudioInputStream convert1AIS = null;
+        AudioInputStream convert2AIS = null;
+
+        try{
+            sourceAIS = AudioSystem.getAudioInputStream(sourceFile);
+            AudioFormat sourceFormat = sourceAIS.getFormat();
+            AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels()*2, sourceFormat.getSampleRate(), false);
+            convert1AIS = AudioSystem.getAudioInputStream(convertFormat, sourceAIS);
+            convert2AIS = AudioSystem.getAudioInputStream(audioFormat, convert1AIS);
+
+            baos = new ByteArrayOutputStream();
+
+            byte [] buffer = new byte[8192];
+            while(true){
+                int readCount = convert2AIS.read(buffer, 0, buffer.length);
+                if(readCount == -1){
+                    break;
+                }
+                baos.write(buffer, 0, readCount);
+            }
+            return baos.toByteArray();
+        } catch(UnsupportedAudioFileException uafe){
+        	System.out.println("[][] EXCEPTION: unsupported. [][]");
+            //uafe.printStackTrace();
+            throw uafe;
+        } catch(IOException ioe){
+            //ioe.printStackTrace();
+            throw ioe;
+        } catch(IllegalArgumentException iae){
+            //iae.printStackTrace();
+            throw iae;
+        } catch (Exception e) {
+            //e.printStackTrace();
+            throw e;
+        }finally{
+            if(baos != null){
+                try{
+                    baos.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert2AIS != null){
+                try{
+                    convert2AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert1AIS != null){
+                try{
+                    convert1AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(sourceAIS != null){
+                try{
+                    sourceAIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(bais != null){
+                try{
+                    bais.close();
+                }catch(Exception e){
+                }
+            }
+        }
+        
+    }
+/*
+	public static byte [] getAudioDataBytes(byte [] sourceBytes, AudioFormat audioFormat) throws UnsupportedAudioFileException, IllegalArgumentException, Exception{
+        if(sourceBytes == null || sourceBytes.length == 0 || audioFormat == null){
+            throw new IllegalArgumentException("Illegal Argument passed to this method");
+        }
+
+        ByteArrayInputStream bais = null;
+        ByteArrayOutputStream baos = null;
+        AudioInputStream sourceAIS = null;
+        AudioInputStream convert1AIS = null;
+        AudioInputStream convert2AIS = null;
+
+        try{
+            bais = new ByteArrayInputStream(sourceBytes);
+            System.out.println("bais = " + bais);
+            sourceAIS = AudioSystem.getAudioInputStream(bais);
+            AudioFormat sourceFormat = sourceAIS.getFormat();
+            AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels()*2, sourceFormat.getSampleRate(), false);
+            convert1AIS = AudioSystem.getAudioInputStream(convertFormat, sourceAIS);
+            convert2AIS = AudioSystem.getAudioInputStream(audioFormat, convert1AIS);
+
+            baos = new ByteArrayOutputStream();
+
+            byte [] buffer = new byte[8192];
+            while(true){
+                int readCount = convert2AIS.read(buffer, 0, buffer.length);
+                if(readCount == -1){
+                    break;
+                }
+                baos.write(buffer, 0, readCount);
+            }
+            return baos.toByteArray();
+        } catch(UnsupportedAudioFileException uafe){
+        	System.out.println("[][] EXCEPTION: unsupported. [][]");
+            //uafe.printStackTrace();
+            throw uafe;
+        } catch(IOException ioe){
+            //ioe.printStackTrace();
+            throw ioe;
+        } catch(IllegalArgumentException iae){
+            //iae.printStackTrace();
+            throw iae;
+        } catch (Exception e) {
+            //e.printStackTrace();
+            throw e;
+        }finally{
+            if(baos != null){
+                try{
+                    baos.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert2AIS != null){
+                try{
+                    convert2AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert1AIS != null){
+                try{
+                    convert1AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(sourceAIS != null){
+                try{
+                    sourceAIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(bais != null){
+                try{
+                    bais.close();
+                }catch(Exception e){
+                }
+            }
+        }
+        
+    }
+*/	
+
+	 private final int BUFFER_SIZE = 512;
+
+	 public void WAVPlay(byte[] buffer) {
+
+		AudioFormat audioFormat = null;
+		AudioInputStream audioStream = null;
+		SourceDataLine sourceLine = null;
+		
+		System.out.println("WAVE Playing...");
+		try {
+	        audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(buffer));
+            audioFormat = audioStream.getFormat();
+		} catch (UnsupportedAudioFileException e) {
+	        e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+	    if(audioStream == null || audioStream.equals(null) ) {
+	        System.out.println("WARNING: Stream read by byte array is null!");
+	    }
+
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
+        try {
+            sourceLine = (SourceDataLine) AudioSystem.getLine(info);
+            sourceLine.open(audioFormat);
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if (sourceLine==null)
+        	return;
+        sourceLine.start();
+
+		System.out.println("Ready.");
+
+        int nBytesRead = 0;
+        long totalRead = 0;
+        int playing_sec = 0;
+		int sample_rate = (buffer[24]&0xFF)+((buffer[25]&0xFF)<<8);				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
+
+//		int num_of_channel = (buffer[22]&0xFF)+((buffer[23]&0xFF)<<8);
+//		int num_bits_of_sample = (buffer[34]&0xFF)+((buffer[35]&0xFF)<<8);
+//		int SampleRate = (buffer[24]&0xFF)+((buffer[25]&0xFF)<<8);
+//		int block_align = ((buffer[33]&0xFF)<<8)+(buffer[32]&0xFF);		// 1개 Sample 당 byte 수. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+
+        byte[] abData = new byte[BUFFER_SIZE];
+        while (nBytesRead != -1) {
+            try {
+                nBytesRead = audioStream.read(abData, 0, abData.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (nBytesRead >= 0) {
+                int nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
+            }
+    		totalRead+=nBytesRead;
+    		playing_sec = (int)((totalRead*1000) / (sample_rate*4));
+    		System.out.println("Playing.."+totalRead + "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
+        }
+		System.out.println("WAVE Done");
+
+        sourceLine.drain();
+        sourceLine.close();
+	}
+/*
+	 public void WAVPlay(File mp3file) {
+
+		AudioFormat audioFormat = null;
+		AudioInputStream audioStream = null;
+		SourceDataLine sourceLine = null;
+		
+		System.out.println("WAVE Playing...");
+		try {
+	        audioStream = AudioSystem.getAudioInputStream(mp3file);
+            audioFormat = audioStream.getFormat();
+		} catch (UnsupportedAudioFileException e) {
+	        e.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+	    if(audioStream == null || audioStream.equals(null) ) {
+	        System.out.println("WARNING: Stream read by byte array is null!");
+	    }
+
+        DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
+        try {
+            sourceLine = (SourceDataLine) AudioSystem.getLine(info);
+            sourceLine.open(audioFormat);
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if (sourceLine==null)
+        	return;
+        sourceLine.start();
+
+		System.out.println("Ready.");
+
+        int nBytesRead = 0;
+        byte[] abData = new byte[BUFFER_SIZE];
+        while (nBytesRead != -1) {
+            try {
+                nBytesRead = audioStream.read(abData, 0, abData.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (nBytesRead >= 0) {
+                @SuppressWarnings("unused")
+                int nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
+            }
+        }
+		System.out.println("WAVE Done");
+
+        sourceLine.drain();
+        sourceLine.close();
+	}
+*/
 }
