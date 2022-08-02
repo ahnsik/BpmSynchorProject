@@ -12,37 +12,96 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class WavPlay extends Thread { //implements Runnable {
+public class WavPlay extends Thread {
 
 	private final static int PLAYING_BUFFER_SIZE = 512;
 	private AudioFormat audioFormat = null;
 	private AudioInputStream audioStream = null;
 	private SourceDataLine sourceLine = null;
 
+	private boolean running_state = false;
+	private boolean pause_state = false;
+
 	private byte[] wavBuffer = null;
 
 	public WavPlay() {
+		running_state = false;
+		pause_state = false;
 		wavBuffer = null;
 	}
 	public WavPlay(byte[] buffer) {
+		running_state = false;
+		pause_state = false;
 		wavBuffer = buffer;
 	}
 	public WavPlay(byte[] headerBuffer, byte[] wavDataBuffer) {
+		running_state = false;
+		pause_state = false;
 		wavBuffer = ByteBuffer.allocate(headerBuffer.length + wavDataBuffer.length)
 	            .put(headerBuffer)
 	            .put(wavDataBuffer)
 	            .array();
 	}
 
-//	public void run() {
-//		// TODO Auto-generated method stub
-//	}
+
+	public void run() {
+		// TODO Auto-generated method stub
+		System.out.println("before running.");
+	    int nBytesRead = 0;
+	    int nBytesWritten = 0;
+	    long totalRead = 0;
+	    int playing_sec = 0;
+	    int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
+
+	    byte[] abData = new byte[PLAYING_BUFFER_SIZE];
+	    
+		while (running_state) {
+
+			if ( !pause_state ) {
+				try {
+					nBytesRead = audioStream.read(abData, 0, abData.length);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if (nBytesRead > 0) {
+					nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
+				} else {			//	if (nBytesRead <= 0) {
+					break;
+				}
+				totalRead+=nBytesRead;
+				playing_sec = (int)((totalRead*1000) / (sample_rate*4));
+				System.out.println("Playing.."+totalRead + "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
+			} else {		// Pause 상태에서는 Thread 가 무한 loop 로 잡고 있으면 안되니까,  sleep 처리
+				try {
+					System.out.println("Thread sleeping...");
+					sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("After running.");
+		running_state = false;
+
+		sourceLine.drain();
+		sourceLine.close();
+	}
+
+	public void pause() {
+//		running_state = true;
+		pause_state = true;
+	}
+
+	public void restart() {
+//		running_state = true;
+		pause_state = false;
+	}
 
 	public void play() {
 		if (wavBuffer==null)
 			return;
-		
-		System.out.println("WAVE Playing...");
+
 		try {
 			audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(wavBuffer));
 			audioFormat = audioStream.getFormat();
@@ -73,34 +132,15 @@ public class WavPlay extends Thread { //implements Runnable {
 
        System.out.println("Ready.");
 
-       int nBytesRead = 0;
-       long totalRead = 0;
-       int playing_sec = 0;
-       int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
-
 //		int num_of_channel = (wavBuffer[22]&0xFF)+((wavBuffer[23]&0xFF)<<8);
 //		int num_bits_of_sample = (wavBuffer[34]&0xFF)+((wavBuffer[35]&0xFF)<<8);
 //		int SampleRate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);
 //		int block_align = ((wavBuffer[33]&0xFF)<<8)+(wavBuffer[32]&0xFF);		// 1개 Sample 당 byte 수. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
 
-       byte[] abData = new byte[PLAYING_BUFFER_SIZE];
-       while (nBytesRead != -1) {
-           try {
-               nBytesRead = audioStream.read(abData, 0, abData.length);
-           } catch (IOException e) {
-               e.printStackTrace();
-           }
-           if (nBytesRead >= 0) {
-               int nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
-           }
-	   		totalRead+=nBytesRead;
-	   		playing_sec = (int)((totalRead*1000) / (sample_rate*4));
-	   		System.out.println("Playing.."+totalRead + "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
-       }
-		System.out.println("WAVE Done");
+		running_state = true;
+		pause_state = false;
+		System.out.println("WAVE Playing...");
 
-       sourceLine.drain();
-       sourceLine.close();
 	}
 
 }

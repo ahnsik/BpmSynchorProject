@@ -56,6 +56,7 @@ public class BpmSynchorWindow {
 	private JTextField tfSongTitle;
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
 	private WaveSynchPane waveSynchPane;
+	private WavPlay player = null;
 
 	/**
 	 * Launch the application.
@@ -131,15 +132,21 @@ public class BpmSynchorWindow {
 					byteRead = is.read(Buffer);
 					is.close();
 
-					// byte array 를 하나로 합치기 --> WAV 플레이를 위해서.
-//					byte[] wholeData = ByteBuffer.allocate(Header.length + Buffer.length)
-//					            .put(Header)
-//					            .put(Buffer)
-//					            .array();
-//					WAVPlay(wholeData);
+					if (player != null) {		// 기존에 존재하는 Thread 는 제거해야 하는데... 제거 방법을 아직 모르겠다. 
+						player.pause();
+						player.interrupt();
+//						try {
+//							player.join();
+//						} catch (InterruptedException e1) {
+//							// TODO Auto-generated catch block
+//							e1.printStackTrace();
+//						}
 
-					WavPlay player = new WavPlay(Header, Buffer);
+						player = null;
+					}
+					player = new WavPlay(Header, Buffer);
 					player.play();
+					player.start();
 
 					int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
 					int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
@@ -343,8 +350,25 @@ public class BpmSynchorWindow {
 		JButton btnToStart = new JButton("Move to Start");
 		
 		JButton btnPlay = new JButton("Play");
+		btnPlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Play Button Clicked.");
+				if (player == null)
+					return;
+				player.restart();
+			}
+		});
 		
 		JButton btnPause = new JButton("Pause");
+		btnPause.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("[Pause].");
+				if (player == null)
+					return;
+				player.pause();
+//				player.start();
+			}
+		});
 		
 		JLabel lblJumpTo = new JLabel("Jump to");
 		
