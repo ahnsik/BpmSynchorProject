@@ -33,7 +33,6 @@ public class WaveSynchPane extends JPanel
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
 	private static final float ZOOM_IN_LIMIT = 0.5f;
 	private static final float ZOOM_OUT_LIMIT = 0.002f;
-//	private static final int X_CELL_WHEN_60BPM = 48;		/* 60BPM, 4/4박자 일때, 16분음표 표시를 위한 셀 가로 크기 */
 	private static final int X_CELL_WHEN_60BPM = 6;		/* 60BPM, 4/4박자 일때, 16분음표 표시를 위한 셀 가로 크기 */
 	
 	private int canvas_width;
@@ -81,9 +80,7 @@ public class WaveSynchPane extends JPanel
 	public void paintComponent(Graphics g) {
 		canvas_width = getWidth();
 		canvas_height = getHeight();
-//		System.out.println("WaveSynchPane drawing...");
 
-		
 		g.setColor(bg_color);
 		g.fillRect( 0, 0, canvas_width, canvas_height );
 

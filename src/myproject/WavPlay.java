@@ -14,7 +14,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class WavPlay extends Thread {
 
-	private final static int PLAYING_BUFFER_SIZE = 512;
+	private final static int PLAYING_BUFFER_SIZE = 1024;
 	private AudioFormat audioFormat = null;
 	private AudioInputStream audioStream = null;
 	private SourceDataLine sourceLine = null;
@@ -51,7 +51,7 @@ public class WavPlay extends Thread {
 	    int nBytesWritten = 0;
 	    long totalRead = 0;
 	    int playing_sec = 0;
-	    int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
+	    int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);		//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4바이트 little endian
 
 	    byte[] abData = new byte[PLAYING_BUFFER_SIZE];
 	    
@@ -105,6 +105,17 @@ public class WavPlay extends Thread {
 		try {
 			audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(wavBuffer));
 			audioFormat = audioStream.getFormat();
+			
+			System.out.println("isBigEndian="+audioFormat.isBigEndian()+", channels="+audioFormat.getChannels()+", encoding="+audioFormat.getEncoding());
+			System.out.println("   , frameRate="+audioFormat.getFrameRate()+", frameSize="+audioFormat.getFrameSize()+", sampleRate="+audioFormat.getSampleRate()+", sampleSizeInBits="+audioFormat.getSampleSizeInBits());
+//			audioFormat.bigEndian			//	Indicates whether the audio data is stored in big-endian or little-endian order.
+//			audioFormat.channels			// The number of audio channels in this format (1 for mono, 2 for stereo).
+//			audioFormat.encoding		// The audio encoding technique used by this format.
+//			audioFormat.frameRate		//	The number of frames played or recorded per second, for sounds that have this format.
+//			audioFormat.frameSize		//The number of bytes in each frame of a sound that has this format.
+//			audioFormat.sampleRate		//	The number of samples played or recorded per second, for sounds that have this format.
+//			audioFormat.sampleSizeInBits	//	The number of bits in each sample of a sound that has this format.
+			
 		} catch (UnsupportedAudioFileException e) {
 			e.printStackTrace();
 		} catch (Exception e){
