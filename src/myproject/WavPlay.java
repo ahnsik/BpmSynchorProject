@@ -23,6 +23,7 @@ public class WavPlay extends Thread {
 	private boolean pause_state = false;
 
 	private byte[] wavBuffer = null;
+	private int playing_position = 0;
 
 	public WavPlay() {
 		running_state = false;
@@ -47,31 +48,26 @@ public class WavPlay extends Thread {
 	public void run() {
 		// TODO Auto-generated method stub
 		System.out.println("before running.");
-	    int nBytesRead = 0;
 	    int nBytesWritten = 0;
-	    long totalRead = 0;
 	    int playing_sec = 0;
-	    int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);		//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4πŸ¿Ã∆Æ little endian
+	    int sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);		//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4ÔøΩÔøΩÔøΩÔøΩ∆Æ little endian
 
 	    byte[] abData = new byte[PLAYING_BUFFER_SIZE];
 	    
 		while (running_state) {
 
 			if ( !pause_state ) {
-				try {
-					nBytesRead = audioStream.read(abData, 0, abData.length);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				if (nBytesRead > 0) {
-					nBytesWritten = sourceLine.write(abData, 0, nBytesRead);
+				// ÏõêÎûòÎäî..	nBytesRead = audioStream.read(abData, 0, abData.length);
+				System.arraycopy(wavBuffer, playing_position+44, abData, 0, PLAYING_BUFFER_SIZE);
+				if ( (playing_position+PLAYING_BUFFER_SIZE) < wavBuffer.length ) {
+					nBytesWritten = sourceLine.write(abData, 0, PLAYING_BUFFER_SIZE);
+					playing_position += nBytesWritten;	//PLAYING_BUFFER_SIZE;
 				} else {			//	if (nBytesRead <= 0) {
 					break;
 				}
-				totalRead+=nBytesRead;
-				playing_sec = (int)((totalRead*1000) / (sample_rate*4));
-				System.out.println("Playing.."+totalRead + "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
-			} else {		// Pause ªÛ≈¬ø°º≠¥¬ Thread ∞° π´«— loop ∑Œ ¿‚∞Ì ¿÷¿∏∏È æ»µ«¥œ±Ó,  sleep √≥∏Æ
+				playing_sec = (int)((playing_position*1000) / (sample_rate*4));
+				System.out.println("Playing.."+playing_position+ "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
+			} else {		// Pause ÔøΩÔøΩÔøΩ¬øÔøΩÔøΩÔøΩÔøΩÔøΩ Thread ÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩ loop ÔøΩÔøΩ ÔøΩÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ ÔøΩ»µ«¥œ±ÔøΩ,  sleep √≥ÔøΩÔøΩ
 				try {
 					System.out.println("Thread sleeping...");
 					sleep(100);
@@ -146,12 +142,17 @@ public class WavPlay extends Thread {
 //		int num_of_channel = (wavBuffer[22]&0xFF)+((wavBuffer[23]&0xFF)<<8);
 //		int num_bits_of_sample = (wavBuffer[34]&0xFF)+((wavBuffer[35]&0xFF)<<8);
 //		int SampleRate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);
-//		int block_align = ((wavBuffer[33]&0xFF)<<8)+(wavBuffer[32]&0xFF);		// 1∞≥ Sample ¥Á byte ºˆ. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+//		int block_align = ((wavBuffer[33]&0xFF)<<8)+(wavBuffer[32]&0xFF);		// 1ÔøΩÔøΩ Sample ÔøΩÔøΩ byte ÔøΩÔøΩ. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
 
 		running_state = true;
 		pause_state = false;
 		System.out.println("WAVE Playing...");
 
+	}
+	public void setPlayingPosition(int position) {
+		// TODO Auto-generated method stub
+			System.out.println("Ready ÏïàÎêêÎÇò Î≥¥ÎÑ§.. ÏïÑÎßàÎèÑ ÌèâÏÉù Í∑∏Îü¥Í∫ºÏïº.. „ÖèÎ∞îÌïò„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè„Öè");
+		playing_position /= 2; 
 	}
 
 }
