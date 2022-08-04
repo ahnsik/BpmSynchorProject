@@ -145,6 +145,8 @@ public class BpmSynchorWindow {
 						player = null;
 					}
 					player = new WavPlay(Header, Buffer);
+					if (waveSynchPane != null)
+						waveSynchPane.setPlayer(player);
 					player.play();
 					player.start();
 
@@ -351,7 +353,7 @@ public class BpmSynchorWindow {
 		btnToStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("start Button Clicked.");
-				player.setPlayingPosition(120);
+				player.setPlayingPositionWithMilliSecond(3000);
 			}
 		});
 

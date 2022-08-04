@@ -49,9 +49,11 @@ public class WaveSynchPane extends JPanel
 
 	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1칸의 pixel 크기. -- depend on Zoom Size, Beats, BPM, etc...
 			// 60 bpm, quaver(8분음표), 기본화면크기에  
+	private WavPlay	player;
 	private int beat_per_bar = 8;
 	private int time_grid = x_grid_unit*8;		// 시간 표시를 위한 grid 간격.
 	private int start_index = 0;		// 시간 표시를 위한 grid 간격.
+	private int playing_position = 0;		// 시간 표시를 위한 grid 간격.
 	private float wave_zoom = 0.002f;			// 최소값=최대축소율 = 0.001 까지만 할 것.==> 약 3분짜리 1곡을 1920 전체 화면에 그리는 배율.
 												// default 는 0.01 이 적당한 것으로 보인다. = 코쿠리코언덕 정도의 느린 음악에 따라 가기가 딱 좋다.
 
@@ -158,6 +160,8 @@ public class WaveSynchPane extends JPanel
 				prev_min = min;
 				max=0;
 				min=255;
+
+
 				for (j=0; j<num_per_px; j++) {
 					value = wave_data[i+j]&0xFF;
 					max=(max<value)?value:max;
@@ -165,6 +169,17 @@ public class WaveSynchPane extends JPanel
 				}
 				g.drawLine( xpos, center_y+ min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
 				g.drawLine( xpos, center_y+ prev_min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
+
+				if (player != null) {	// 플레이어가 설정 된 상태라면, 
+					playing_position = (int)player.getPlayingPositionInMilliSecond();
+					if ( (i<playing_position) && (i+num_per_px)>playing_position ) {
+						System.out.println("[Drawing] playing_position = "+ playing_position);
+						g.setColor(Color.RED);
+						g.fillRect( xpos-1, y, 2, h-1 );
+						g.setColor(Color.GRAY);
+					}
+				}
+
 				// 다음픽셀로 넘어갑시다.
 				i+=num_per_px;
 				xpos++;
@@ -316,6 +331,15 @@ public class WaveSynchPane extends JPanel
 		repaint();
 	}
 
+	public void setPlayer(WavPlay p) {
+		player = p;
+	}
+	public void setDrawStart(int milisec) {
+		start_index = milisec;		// quaver 1개 음표의 너비(시간)을 milli-second 값으로 나누어야 할 것. - Sampling 주파수를 기준으로 계산해야 함.
+	}
+	public void setPlayingPosition(int milisec) {
+		playing_position = milisec;
+	}
 
 	public void keyTyped(KeyEvent e) {
 		System.out.println("WaveSynchPane KeyTyped:" + e.getKeyCode() );
