@@ -83,6 +83,7 @@ public class WaveSynchPane extends JPanel
 		canvas_width = getWidth();
 		canvas_height = getHeight();
 
+		System.out.println("WaveSynchPane repainted..");
 		g.setColor(bg_color);
 		g.fillRect( 0, 0, canvas_width, canvas_height );
 
@@ -171,7 +172,8 @@ public class WaveSynchPane extends JPanel
 				g.drawLine( xpos, center_y+ prev_min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
 
 				if (player != null) {	// 플레이어가 설정 된 상태라면, 
-					playing_position = (int)player.getPlayingPositionInMilliSecond();
+					playing_position = (int)player.getPlayingPosition();
+//					playing_position = (int)player.getPlayingPositionInMilliSecond();
 					if ( (i<playing_position) && (i+num_per_px)>playing_position ) {
 						System.out.println("[Drawing] playing_position = "+ playing_position);
 						g.setColor(Color.RED);

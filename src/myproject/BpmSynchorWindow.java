@@ -135,18 +135,13 @@ public class BpmSynchorWindow {
 					if (player != null) {		// 기존에 존재하는 Thread 는 제거해야 하는데... 제거 방법을 아직 모르겠다. 
 						player.pause();
 						player.interrupt();
-//						try {
-//							player.join();
-//						} catch (InterruptedException e1) {
-//							// TODO Auto-generated catch block
-//							e1.printStackTrace();
-//						}
-
 						player = null;
 					}
 					player = new WavPlay(Header, Buffer);
-					if (waveSynchPane != null)
+					if (waveSynchPane != null) {
+						player.setView(waveSynchPane);
 						waveSynchPane.setPlayer(player);
+					}
 					player.play();
 					player.start();
 

@@ -12,6 +12,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.JPanel;
 
 public class WavPlay extends Thread {
 
@@ -23,6 +24,7 @@ public class WavPlay extends Thread {
 	private boolean running_state = false;
 	private boolean pause_state = false;
 
+	private JPanel viewToDraw = null;
 	private byte[] wavBuffer = null;
 	private int playing_position = 0;
 	private int sample_rate = 0;
@@ -91,6 +93,11 @@ public class WavPlay extends Thread {
 				}
 				playing_sec = getPlayingPositionInMilliSecond();
 				System.out.println("Playing.."+playing_position+ "= " + (playing_sec/60000) + ":" + (playing_sec%60000)/1000 + "." + (playing_sec%1000) );
+
+				if (viewToDraw!=null) {
+					viewToDraw.repaint();
+				}
+				
 			} else {		// Pause ���¿����� Thread �� ���� loop �� ��� ������ �ȵǴϱ�,  sleep ó��
 				try {
 					System.out.println("Thread sleeping...");
@@ -159,6 +166,12 @@ public class WavPlay extends Thread {
 		System.out.println("WAVE Playing...");
 
 	}
+	
+	public void setView(JPanel v) {
+		System.out.println("view set done..");
+		viewToDraw = v;	
+	}
+	
 	public void setPlayingPosition(int position) {
 		// TODO Auto-generated method stub
 			System.out.println("Ready 안됐나 보네.. 아마도 평생 그럴꺼야.. ㅏ바하ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ");
@@ -167,6 +180,10 @@ public class WavPlay extends Thread {
 
 	public void setPlayingPositionWithMilliSecond(int milliSec) {
 		playing_position = (milliSec * sample_rate * (numChannels*(numBitsInSample/8)) ) / 1000;
+	}
+
+	public int getPlayingPosition() {
+		return playing_position;
 	}
 
 	public long getPlayingPositionInMilliSecond() {
