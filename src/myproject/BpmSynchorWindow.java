@@ -2,6 +2,7 @@ package myproject;
 
 import java.awt.EventQueue;
 import java.text.ParseException;
+import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -12,6 +13,11 @@ import javax.swing.JLabel;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import javax.swing.JFileChooser;
 
 import java.awt.Dimension;
@@ -42,6 +48,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -57,6 +64,7 @@ public class BpmSynchorWindow {
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
+	private NoteData data;
 
 	/**
 	 * Launch the application.
@@ -99,6 +107,34 @@ public class BpmSynchorWindow {
 
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
+		btnOpenFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File f = showFileDialog();
+				if (f==null) {
+					System.out.println("File Not specified.");
+					return;
+				}
+				System.out.println("Selected Uke File:" + f.getPath() );
+
+				JSONParser parser = new JSONParser();
+			    try {
+			    	Object obj = parser.parse(new FileReader(f));
+			    	System.out.println("Object: " + obj);
+
+			    	JSONObject jsonObject = new JSONObject(obj.toString());
+			    	JSONArray notes = (JSONArray)jsonObject.getJSONArray("notes");
+			    	String title = (String)jsonObject.getString("title");
+			    	String comment = (String)jsonObject.getString("comment");
+			    	System.out.println("Title: " + title);
+			    	System.out.println("comment: " + comment);
+			    	for (int i=0; i<10; i++) {
+				    	System.out.println("NoteData("+i+"):" + notes.getJSONObject(i) );
+			    	}
+			    } catch(Exception e1) {
+			    	e1.printStackTrace();
+			    }
+			}
+		});
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

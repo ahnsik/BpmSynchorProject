@@ -56,7 +56,8 @@ public class WavPlay extends Thread {
 		numChannels= ((wavBuffer[23]&0xFF)<<8)+(wavBuffer[22]&0xFF);
 		numBitsInSample = ((wavBuffer[35]&0xFF)<<8)+(wavBuffer[34]&0xFF);
 		sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);
-	}	*/
+	}
+*/
 	public WavPlay(byte[] headerBuffer, byte[] wavDataBuffer) {
 		running_state = false;
 		pause_state = false;
@@ -70,7 +71,6 @@ public class WavPlay extends Thread {
 	            .put(wavDataBuffer)
 	            .array();
 	}
-
 
 	public void run() {
 		// TODO Auto-generated method stub

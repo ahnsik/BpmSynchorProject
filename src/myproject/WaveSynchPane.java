@@ -127,7 +127,7 @@ public class WaveSynchPane extends JPanel
 			}
 		}
 	}
-	
+
 	public void drawWaveData(Graphics g, int x, int y, int w, int h) {
 		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
 		String label="waveform:";
