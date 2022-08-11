@@ -6,6 +6,7 @@ import java.io.FileReader;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 public class NoteData {
 
@@ -55,11 +56,7 @@ public class NoteData {
         score = null;
     }
 
-//    public  NoteData(String dataFileString) {
-//
-//        setData(dataFileString);
-//    }
-
+/*
     public boolean loadFromFile(File dir, String fileName) {
         String   UkeDataRead;
         System.out.println("loadFromFile : "+dir+"/"+fileName );
@@ -103,7 +100,62 @@ public class NoteData {
         }
         return datafile;
     }
+*/
+    
+/*
+    public  String  mCategory;          // �뿰二쇰갑踰� : Chord / 諛대뱶(�떒�쓬)�뿰二� / �븨嫄곗뒪���씪 / �븘瑜댄럹吏��삤, etc..
+    public  String  mAuthor;            // �븙蹂� �젣�옉�옄
+    public  String  mBasicBeat;         // 諛뺤옄 : 2/4, 3/4, 4/4, 6/8, ...
 
+    public  int     mStartOffset;       // 泥섏쓬 �떆�옉�븷 �쐞移섏쓽 �삤�봽�뀑
+    public  int     mLevel;             // 怨≪쓽 �궃�씠�룄 �젅踰�. �닽�옄媛� �쟻�쓣 �닔濡� �돩�슫 �젅踰�.
+    public  float   mBpm;
+    public  int     numNotes;
+
+    // �뿬湲� �븘�옒�쓽 諛곗뿴�뱾�� 吏꾩쭨 �뿰二쇳빐�빞 �븷 �뜲�씠�꽣 �뱾..
+    public  long[]       timeStamp;
+    public  String[]    chordName;
+    public  String[]    stroke;
+    public  String[]    technic;
+    public  String[][]  tab;
+    public  String[][]  note;
+    public  boolean[][] note_played;
+    public  String[]    lyric;
+
+    public  int[]  score;        // time diff what with played.
+
+ */
+    
+
+    public boolean loadFromFile(File f) {
+		JSONParser parser = new JSONParser();
+	    try {
+	    	Object obj = parser.parse(new FileReader(f));
+	    	System.out.println("Object: " + obj);
+
+	    	JSONObject jsonObject = new JSONObject(obj.toString());
+	    	mSongTitle = (String)jsonObject.getString("title");
+	    	mCommentary = (String)jsonObject.getString("comment");
+	    	version = (String)jsonObject.getString("version");
+	        mMusicURL = (String)jsonObject.getString("source");
+	        mThumbnailURL = (String)jsonObject.getString("thumbnail");
+	        mBpm = (int)jsonObject.getDouble("bpm");
+
+	        System.out.println("Title: " + mSongTitle);
+	    	System.out.println("mp3 source: " + mMusicURL);
+	    	System.out.println("comment: " + mCommentary);
+
+	    	JSONArray notes = (JSONArray)jsonObject.getJSONArray("notes");
+	    	for (int i=0; i<10; i++) {
+		    	System.out.println("NoteData("+i+"):" + notes.getJSONObject(i) );
+	    	}
+	    
+	    } catch(Exception e1) {
+	    	e1.printStackTrace();
+	    	return false;
+	    }
+	    return true;
+    }
 
 
     public JSONObject makeJSON() {
