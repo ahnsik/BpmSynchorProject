@@ -1,7 +1,9 @@
 package myproject;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -47,17 +49,36 @@ public class WavPlay extends Thread {
 		numBitsInSample = ((wavBuffer[35]&0xFF)<<8)+(wavBuffer[34]&0xFF);
 		sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);
 	}	
-	public WavPlay(File f) {
-		FileInputStream is;
-		is = new FileInputStream( f );
-		int byteRead = -1;
-		byteRead = is.read(wavBuffer);
-		is.close();
-		numChannels= ((wavBuffer[23]&0xFF)<<8)+(wavBuffer[22]&0xFF);
-		numBitsInSample = ((wavBuffer[35]&0xFF)<<8)+(wavBuffer[34]&0xFF);
-		sample_rate = (wavBuffer[24]&0xFF)+((wavBuffer[25]&0xFF)<<8);
-	}
 */
+	public WavPlay(File f) {
+		byte[] Header = new byte[44];
+		byte[] Buffer = new byte[(int)f.length()];
+
+		FileInputStream is;
+		try {
+			is = new FileInputStream( f );
+			int byteRead = -1;
+			byteRead = is.read(Header);			// *.wav파일 헤더포맷 https://anythingcafe.tistory.com/2
+			byteRead = is.read(Buffer);
+			is.close();
+
+			//WavPlay(Header, Buffer);		// 생성자에서 생성자를 호출할 수 없다 ?? 
+			running_state = false;
+			pause_state = false;
+
+			numChannels= ((Header[23]&0xFF)<<8)+(Header[22]&0xFF);
+			numBitsInSample = ((Header[35]&0xFF)<<8)+(Header[34]&0xFF);
+			sample_rate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
+
+			wavBuffer = ByteBuffer.allocate(Header.length + Header.length)
+		            .put(Header)
+		            .put(Header)
+		            .array();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public WavPlay(byte[] headerBuffer, byte[] wavDataBuffer) {
 		running_state = false;
 		pause_state = false;
