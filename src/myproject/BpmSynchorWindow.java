@@ -2,8 +2,6 @@ package myproject;
 
 import java.awt.EventQueue;
 import java.text.ParseException;
-import java.util.Iterator;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -27,14 +25,6 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -42,16 +32,11 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JFormattedTextField;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -64,7 +49,7 @@ public class BpmSynchorWindow {
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
-	private NoteData data;
+	private NoteData data = null;
 
 	/**
 	 * Launch the application.
@@ -99,8 +84,10 @@ public class BpmSynchorWindow {
 		frmUkeBpmSynchronizer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmUkeBpmSynchronizer.setMinimumSize(new Dimension(935, 580));
 		
+		data = null;
+		player = null;
 		waveSynchPane = new WaveSynchPane();
-		
+
 		JPanel panelFileManager = new JPanel();
 		panelFileManager.setBorder(new BevelBorder(BevelBorder.RAISED));
 		frmUkeBpmSynchronizer.getContentPane().add(panelFileManager, BorderLayout.NORTH);
@@ -116,7 +103,9 @@ public class BpmSynchorWindow {
 				}
 				System.out.println("Selected Uke File:" + f.getPath() );
 
-				JSONParser parser = new JSONParser();
+				data = new NoteData();
+				data.loadFromFile(f);
+/*				JSONParser parser = new JSONParser();
 			    try {
 			    	Object obj = parser.parse(new FileReader(f));
 			    	System.out.println("Object: " + obj);
@@ -133,6 +122,17 @@ public class BpmSynchorWindow {
 			    } catch(Exception e1) {
 			    	e1.printStackTrace();
 			    }
+*/
+				if (data.mMusicURL != null) {
+			    	System.out.println("Music file set:" + data.mMusicURL );
+			    	player = new WavPlay(new File("C:\\Users\\Ahnsik Choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav") );				// new File(data.mMusicURL) );
+			    } else {
+			    	System.out.println("No music scpecified.");
+			    }
+				tfSongTitle.setText(data.getSongTitle() );
+				tfComment.setText(data.getComment() );
+				player = null;
+
 			}
 		});
 		JButton btnSetWave = new JButton("Set WAVE");

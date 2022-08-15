@@ -136,7 +136,7 @@ public class NoteData {
 	    	JSONObject jsonObject = new JSONObject(obj.toString());
 	    	mSongTitle = (String)jsonObject.getString("title");
 	    	mCommentary = (String)jsonObject.getString("comment");
-	    	version = (String)jsonObject.getString("version");
+//	    	version = (String)jsonObject.getString("version");
 	        mMusicURL = (String)jsonObject.getString("source");
 	        mThumbnailURL = (String)jsonObject.getString("thumbnail");
 	        mBpm = (int)jsonObject.getDouble("bpm");
@@ -314,4 +314,11 @@ public class NoteData {
         return true;
     }   // end of setData();
 
+    public String getComment() {
+    	return this.mCommentary;
+    }
+    public String getSongTitle() {
+    	return this.mSongTitle;
+    }
+    
 }
