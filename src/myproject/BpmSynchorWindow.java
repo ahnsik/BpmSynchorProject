@@ -102,30 +102,26 @@ public class BpmSynchorWindow {
 					return;
 				}
 				System.out.println("Selected Uke File:" + f.getPath() );
+				System.out.println(" -- getParent():" + f.getParent() );
 
 				data = new NoteData();
 				data.loadFromFile(f);
-/*				JSONParser parser = new JSONParser();
-			    try {
-			    	Object obj = parser.parse(new FileReader(f));
-			    	System.out.println("Object: " + obj);
 
-			    	JSONObject jsonObject = new JSONObject(obj.toString());
-			    	JSONArray notes = (JSONArray)jsonObject.getJSONArray("notes");
-			    	String title = (String)jsonObject.getString("title");
-			    	String comment = (String)jsonObject.getString("comment");
-			    	System.out.println("Title: " + title);
-			    	System.out.println("comment: " + comment);
-			    	for (int i=0; i<10; i++) {
-				    	System.out.println("NoteData("+i+"):" + notes.getJSONObject(i) );
-			    	}
-			    } catch(Exception e1) {
-			    	e1.printStackTrace();
-			    }
-*/
 				if (data.mMusicURL != null) {
-			    	System.out.println("Music file set:" + data.mMusicURL );
-			    	player = new WavPlay(new File("C:\\Users\\Ahnsik Choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\itsumonandodemo.wav") );				// new File(data.mMusicURL) );
+//					File mp3file = new File( f.getParent(), data.mMusicURL) ;
+					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
+			    	player = new WavPlay(mp3file);
+					if (waveSynchPane != null) {
+						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
+						player.setView(waveSynchPane);
+						waveSynchPane.setPlayer(player);
+						setWaveData(mp3file); 
+					}
+
+//					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
+//			    	System.out.println("Music file set:" + data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
+//			    	player = new WavPlay(mp3file);
+//			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {
 			    	System.out.println("No music scpecified.");
 			    }
@@ -146,80 +142,7 @@ public class BpmSynchorWindow {
 				}
 
 				System.out.println("Selected File:" + f.getPath() );
-
-				/*	-- WAV ÆÄÀÏÀÎ °æ¿ì.	*/
-				byte[] Header = new byte[44];
-				byte[] Buffer = new byte[(int)f.length()];
-
-				try {
-					FileInputStream is;
-
-					is = new FileInputStream( f );
-
-					int byteRead = -1;
-					byteRead = is.read(Header);			// *.wavÆÄÀÏ Çì´õÆ÷¸Ë https://anythingcafe.tistory.com/2
-					System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4¹ÙÀÌÆ® ÀÌÁö¸¸ Header Å©±â´Â ±×¸® Å©Áö ¾ÊÀ¸¹Ç·Î, ÇÏÀ§ 2¹ÙÀÌÆ®¸¸. (little endian)
-					System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// Ã¤³Î ¼ö : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
-					System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4¹ÙÀÌÆ® little endian
-					System.out.println("byte rate =1ÃÊ´ç byte ¼ö:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
-					System.out.println("Sample´ç bit¼ö:"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
-					System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
-
-					byteRead = is.read(Buffer);
-					is.close();
-
-					if (player != null) {		// ±âÁ¸¿¡ Á¸ÀçÇÏ´Â Thread ´Â Á¦°ÅÇØ¾ß ÇÏ´Âµ¥... Á¦°Å ¹æ¹ýÀ» ¾ÆÁ÷ ¸ð¸£°Ú´Ù. 
-						player.pause();
-						player.interrupt();
-						player = null;
-					}
-					player = new WavPlay(Header, Buffer);
-					if (waveSynchPane != null) {
-						player.setView(waveSynchPane);
-						waveSynchPane.setPlayer(player);
-					}
-					player.play();
-					player.start();
-
-					int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
-					int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
-					int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
-					int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1°³ Sample ´ç byte ¼ö. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
-					System.out.println("sample stripe = "+block_align );	
-
-					byte[] rawBuffer;
-					if (num_of_channel==1) {		// mono Ã¤³Î
-						if (num_bits_of_sample ==8 ) {	// 8bit »ùÇÃ
-							waveSynchPane.setWaveData(Buffer);
-							frmUkeBpmSynchronizer.repaint();		// ¹öÆÛ¸¦ ±×´ë·Î ±×³É Àü´ÞÇØµµ µÊ.
-							return;
-						} else {					// 16bit »ùÇÃÀÌ¸é, »óÀ§ 8ºñÆ®¸¸ Ã³¸®.
-							rawBuffer = new byte[(byteRead/block_align)];
-							for (int i=0; i<byteRead-block_align; i+= block_align ) {
-								rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] ÇÑ °Å´Â, 16bit »ùÇÃÀ» 8ºñÆ® »ùÇÃ·Î Ã³¸®ÇÏ±â À§ÇÔ. 
-							}
-						}
-					} else {		// stereo Ã¤³Î ¶Ç´Â ´ÙÃ¤³Î.	// ¿ø·¡´Â ¿©±â¼­µµ 16bit »ùÇÃÀÎÁö ÆÇ´ÜÇØ¾ß ÇÏÁö¸¸, ±×³É 8bit ÀÎ °æ¿ì¿¡µµ 1¹ÙÀÌÆ® ¼ÕÇØº¼ »ÓÀÌ¹Ç·Î ±×³É ³Ñ¾î°¡ÀÚ.
-						rawBuffer = new byte[(byteRead/block_align)];
-						for (int i=0; i<byteRead-block_align; i+= block_align ) {
-							rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] ÇÑ °Å´Â, 16bit »ùÇÃÀ» 8ºñÆ® »ùÇÃ·Î Ã³¸®ÇÏ±â À§ÇÔ. 
-						}
-					}
-
-					System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[4]+"," + Buffer[8]+"," + Buffer[12]+"," + Buffer[16]+"," + Buffer[20]+"," + Buffer[24]+"," + Buffer[28]+"," + Buffer[32]+"," + Buffer[36]+"," + Buffer[40]+"," + Buffer[44]+"," + Buffer[48] );
-					System.out.println( "Number of byteRead="+ (byteRead/block_align) + " : " + rawBuffer[0]+"," + rawBuffer[1]+"," + rawBuffer[2]+"," + rawBuffer[3]+"," + rawBuffer[4]+"," + rawBuffer[5]+"," + rawBuffer[6]+"," + rawBuffer[7]+"," + rawBuffer[8]+"," + rawBuffer[9]+"," + rawBuffer[10]+"," + rawBuffer[11]+"," + rawBuffer[12] );
-
-					if (waveSynchPane != null) {
-						waveSynchPane.setWaveData(rawBuffer);
-						frmUkeBpmSynchronizer.repaint();
-					}
-				} catch (FileNotFoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				setWaveData(f); 
 
 			}
 		});
@@ -537,6 +460,83 @@ public class BpmSynchorWindow {
 		waveSynchPane.addKeyListener(waveSynchPane);		// KeyListener
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 		
+	}
+
+	protected void setWaveData(File f) {
+		// TODO Auto-generated method stub
+		/*	-- WAV ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.	*/
+		byte[] Header = new byte[44];
+		byte[] Buffer = new byte[(int)f.length()];
+
+		try {
+			FileInputStream is;
+
+			is = new FileInputStream( f );
+
+			int byteRead = -1;
+			byteRead = is.read(Header);			// *.wavï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ https://anythingcafe.tistory.com/2
+			System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Header Å©ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½, ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½. (little endian)
+			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// Ã¤ï¿½ï¿½ ï¿½ï¿½ : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
+			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4ï¿½ï¿½ï¿½ï¿½Æ® little endian
+			System.out.println("byte rate =1ï¿½Ê´ï¿½ byte ï¿½ï¿½:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
+			System.out.println("Sampleï¿½ï¿½ bitï¿½ï¿½:"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
+			System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
+
+			byteRead = is.read(Buffer);
+			is.close();
+
+			if (player != null) {		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Thread ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï´Âµï¿½... ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ð¸£°Ú´ï¿½. 
+				player.pause();
+				player.interrupt();
+				player = null;
+			}
+			player = new WavPlay(Header, Buffer);
+			if (waveSynchPane != null) {
+				player.setView(waveSynchPane);
+				waveSynchPane.setPlayer(player);
+			}
+//			player.play();
+//			player.start();
+
+			int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
+			int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
+			int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
+			int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1ï¿½ï¿½ Sample ï¿½ï¿½ byte ï¿½ï¿½. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+			System.out.println("sample stripe = "+block_align );	
+
+			byte[] rawBuffer;
+			if (num_of_channel==1) {		// mono Ã¤ï¿½ï¿½
+				if (num_bits_of_sample ==8 ) {	// 8bit ï¿½ï¿½ï¿½ï¿½
+					waveSynchPane.setWaveData(Buffer);
+					frmUkeBpmSynchronizer.repaint();		// ï¿½ï¿½ï¿½Û¸ï¿½ ï¿½×´ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½ï¿½.
+					return;
+				} else {					// 16bit ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ 8ï¿½ï¿½Æ®ï¿½ï¿½ Ã³ï¿½ï¿½.
+					rawBuffer = new byte[(byteRead/block_align)];
+					for (int i=0; i<byteRead-block_align; i+= block_align ) {
+						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] ï¿½ï¿½ ï¿½Å´ï¿½, 16bit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 8ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ã·ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½. 
+					}
+				}
+			} else {		// stereo Ã¤ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½Ã¤ï¿½ï¿½.	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ï¿½ï¿½ 16bit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½×³ï¿½ 8bit ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Øºï¿½ ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½×³ï¿½ ï¿½Ñ¾î°¡ï¿½ï¿½.
+				rawBuffer = new byte[(byteRead/block_align)];
+				for (int i=0; i<byteRead-block_align; i+= block_align ) {
+					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] ï¿½ï¿½ ï¿½Å´ï¿½, 16bit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 8ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ã·ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½. 
+				}
+			}
+
+			System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[4]+"," + Buffer[8]+"," + Buffer[12]+"," + Buffer[16]+"," + Buffer[20]+"," + Buffer[24]+"," + Buffer[28]+"," + Buffer[32]+"," + Buffer[36]+"," + Buffer[40]+"," + Buffer[44]+"," + Buffer[48] );
+			System.out.println( "Number of byteRead="+ (byteRead/block_align) + " : " + rawBuffer[0]+"," + rawBuffer[1]+"," + rawBuffer[2]+"," + rawBuffer[3]+"," + rawBuffer[4]+"," + rawBuffer[5]+"," + rawBuffer[6]+"," + rawBuffer[7]+"," + rawBuffer[8]+"," + rawBuffer[9]+"," + rawBuffer[10]+"," + rawBuffer[11]+"," + rawBuffer[12] );
+
+			if (waveSynchPane != null) {
+				waveSynchPane.setWaveData(rawBuffer);
+				frmUkeBpmSynchronizer.repaint();
+			}
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 
 	public File showFileDialog() {

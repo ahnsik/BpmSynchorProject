@@ -33,7 +33,8 @@ public class WaveSynchPane extends JPanel
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
 	private static final float ZOOM_IN_LIMIT = 0.5f;
 	private static final float ZOOM_OUT_LIMIT = 0.002f;
-	private static final int X_CELL_WHEN_60BPM = 6;		/* 60BPM, 4/4¹ÚÀÚ ÀÏ¶§, 16ºÐÀ½Ç¥ Ç¥½Ã¸¦ À§ÇÑ ¼¿ °¡·Î Å©±â */
+	private static final float DEFAULT_ZOOM_FACTOR = 0.002f;
+	private static final int X_CELL_WHEN_60BPM = 6;		/* 60BPM, 4/4ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¶ï¿½, 16ï¿½ï¿½ï¿½ï¿½Ç¥ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ */
 	
 	private int canvas_width;
 	private int canvas_height;
@@ -42,20 +43,21 @@ public class WaveSynchPane extends JPanel
 	private static Font gridFont, labelFont;	
 	private static Color bg_color, rulerColor, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
 
-	//// ¼³Á¤°ªÀÇ Á¤ÀÇ
+	//// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	private int value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
-	private int value_beat = 0;	//	'0' = quaver(8ºÐÀ½Ç¥), '1'=semi-quaver(16ºÐÀ½Ç¥) 
+	private int value_beat = 0;	//	'0' = quaver(8ï¿½ï¿½ï¿½ï¿½Ç¥), '1'=semi-quaver(16ï¿½ï¿½ï¿½ï¿½Ç¥) 
 	private int value_bpm = 80;	// beats per minute.
+	private int sample_rate = 8000;
 
-	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1Ä­ÀÇ pixel Å©±â. -- depend on Zoom Size, Beats, BPM, etc...
-			// 60 bpm, quaver(8ºÐÀ½Ç¥), ±âº»È­¸éÅ©±â¿¡  
+	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1Ä­ï¿½ï¿½ pixel Å©ï¿½ï¿½. -- depend on Zoom Size, Beats, BPM, etc...
+			// 60 bpm, quaver(8ï¿½ï¿½ï¿½ï¿½Ç¥), ï¿½âº»È­ï¿½ï¿½Å©ï¿½â¿¡  
 	private WavPlay	player;
 	private int beat_per_bar = 8;
-	private int time_grid = x_grid_unit*8;		// ½Ã°£ Ç¥½Ã¸¦ À§ÇÑ grid °£°Ý.
-	private int start_index = 0;		// ½Ã°£ Ç¥½Ã¸¦ À§ÇÑ grid °£°Ý.
-	private int playing_position = 0;		// ½Ã°£ Ç¥½Ã¸¦ À§ÇÑ grid °£°Ý.
-	private float wave_zoom = 0.002f;			// ÃÖ¼Ò°ª=ÃÖ´ëÃà¼ÒÀ² = 0.001 ±îÁö¸¸ ÇÒ °Í.==> ¾à 3ºÐÂ¥¸® 1°îÀ» 1920 ÀüÃ¼ È­¸é¿¡ ±×¸®´Â ¹èÀ².
-												// default ´Â 0.01 ÀÌ Àû´çÇÑ °ÍÀ¸·Î º¸ÀÎ´Ù. = ÄÚÄí¸®ÄÚ¾ð´ö Á¤µµÀÇ ´À¸° À½¾Ç¿¡ µû¶ó °¡±â°¡ µü ÁÁ´Ù.
+	private int time_grid = x_grid_unit*8;		// ï¿½Ã°ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ grid ï¿½ï¿½ï¿½ï¿½.
+	private int start_index = 0;		// ï¿½Ã°ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ grid ï¿½ï¿½ï¿½ï¿½.
+	private int playing_position = 0;		// ï¿½Ã°ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ grid ï¿½ï¿½ï¿½ï¿½.
+	private float zoom_factor = DEFAULT_ZOOM_FACTOR;			// ï¿½Ö¼Ò°ï¿½=ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ = 0.001 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½.==> ï¿½ï¿½ 3ï¿½ï¿½Â¥ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ 1920 ï¿½ï¿½Ã¼ È­ï¿½é¿¡ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+												// default ï¿½ï¿½ 0.01 ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î´ï¿½. = ï¿½ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â°¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 
 	private byte[] wave_data;
 
@@ -87,16 +89,16 @@ public class WaveSynchPane extends JPanel
 		g.setColor(bg_color);
 		g.fillRect( 0, 0, canvas_width, canvas_height );
 
-		// »ó´Ü Ruler
+		// ï¿½ï¿½ï¿½ Ruler
 		drawRuler(g, X_OFFSET, 10, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
-		// ÇÏ´Ü Ruler
+		// ï¿½Ï´ï¿½ Ruler
 		drawRuler(g, X_OFFSET, canvas_height-RULER_THICKNESS, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
 
 		int ypos = canvas_height-RULER_THICKNESS;
-		// ¿¬ÁÖ±â¹ý, Stroke ¹æÇâ, etc.. 
+		// ï¿½ï¿½ï¿½Ö±ï¿½ï¿½, Stroke ï¿½ï¿½ï¿½ï¿½, etc.. 
 		drawTechnicArea(g, X_OFFSET, ypos-TECHNIC_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, TECHNIC_AREA_THICKNESS );
 		ypos -= TECHNIC_AREA_THICKNESS;
-		// TAB ¾Çº¸ ±×¸®±â 
+		// TAB ï¿½Çºï¿½ ï¿½×¸ï¿½ï¿½ï¿½ 
 		drawTABArea(g, X_OFFSET, ypos-TAB_AREA_HEIGHT, canvas_width-X_OFFSET-X_PADDING, TAB_AREA_HEIGHT );
 		ypos -= TAB_AREA_HEIGHT;
 		// Chord Area
@@ -112,15 +114,32 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawRuler(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
-		
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR);
+/*
 		g.setColor(rulerColor);
 		g.fillRect( x, y, w, h );
+		g.setFont(gridFont);
+		g.setColor(rulerFontColor);
 		for (int i=0; i<w; i+= unit_width) {
-			g.setFont(gridFont);
-			g.setColor(rulerFontColor);
 			if (i%time_grid==0) {
 				g.drawString( ""+i, 4+x+i, y+h-8 );
+				g.drawLine(x+i, y+h-8, x+i, y+h-1);
+			} else {
+				g.drawLine(x+i, y+h-4, x+i, y+h-1);
+			}
+		}
+*/
+		g.setColor(rulerColor);
+		g.fillRect( x, y, w, h );
+		g.setFont(gridFont);
+		g.setColor(rulerFontColor);
+
+		float pixels_per_1sec = (float)X_CELL_WHEN_60BPM * (beat_per_bar*2) / zoom_factor;		// 1ì´ˆ ê°„ê²©ì— í•´ë‹¹í•˜ëŠ” ê°’, 4/4ë°•ìž 60bpmì¼ ë•Œ 2ë§ˆë”” = 1ì´ˆ = 96px 
+		float num_index_for_1_pixel =	(float)sample_rate / pixels_per_1sec;
+		
+		for (int i=0; i<w; i+= unit_width) {
+			if ( (i/unit_width)%beat_per_bar==0) {
+				g.drawString( ""+((int)(pixels_per_1sec*i)/1000)+"."+((int)(pixels_per_1sec*i)%1000), 4+x+i, y+h-8 );
 				g.drawLine(x+i, y+h-8, x+i, y+h-1);
 			} else {
 				g.drawLine(x+i, y+h-4, x+i, y+h-1);
@@ -129,7 +148,7 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawWaveData(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR); 
 		String label="waveform:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -145,13 +164,13 @@ public class WaveSynchPane extends JPanel
 			g.fillRect(x+i, y, unit_width-1, h-1);
 		}
 
-		int center_y = y;		//+h/2;			// Waveform Áß½É¼±
-		int max_amplitude = h/2; 		// WINDOW SIZE¿¡ µû¸¥ ÃÖ´ë ÁøÆø°ª (pixel)
+		int center_y = y;		//+h/2;			// Waveform ï¿½ß½É¼ï¿½
+		int max_amplitude = h/2; 		// WINDOW SIZEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (pixel)
 
 		g.setColor(Color.GRAY);
 		if (wave_data!=null) {
 			int i, j, value, max, min, prev_min, xpos;
-			int num_per_px = (int)(1.0f/wave_zoom);		// 1ÇÈ¼¿³ÐÀÌÀÇ wave dataµé °¹¼ö
+			int num_per_px = (int)(1.0f/zoom_factor);		// 1ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ wave dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 //			System.out.println("num_per_px = "+num_per_px);
 			xpos = x;
 			i=start_index;		// start index of wave data
@@ -171,7 +190,7 @@ public class WaveSynchPane extends JPanel
 				g.drawLine( xpos, center_y+ min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
 				g.drawLine( xpos, center_y+ prev_min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
 
-				if (player != null) {	// ÇÃ·¹ÀÌ¾î°¡ ¼³Á¤ µÈ »óÅÂ¶ó¸é, 
+				if (player != null) {	// ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Â¶ï¿½ï¿½, 
 					playing_position = (int)player.getPlayingPosition();
 //					playing_position = (int)player.getPlayingPositionInMilliSecond();
 					if ( (i<playing_position) && (i+num_per_px)>playing_position ) {
@@ -182,7 +201,7 @@ public class WaveSynchPane extends JPanel
 					}
 				}
 
-				// ´ÙÀ½ÇÈ¼¿·Î ³Ñ¾î°©½Ã´Ù.
+				// ï¿½ï¿½ï¿½ï¿½ï¿½È¼ï¿½ï¿½ï¿½ ï¿½Ñ¾î°©ï¿½Ã´ï¿½.
 				i+=num_per_px;
 				xpos++;
 				if ( xpos >= (x+w) )
@@ -192,7 +211,7 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR); 
 
 		String label="chord:";
 		g.setFont(labelFont);
@@ -212,7 +231,7 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawLyricArea(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR); 
 		String label="lyric:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -231,7 +250,7 @@ public class WaveSynchPane extends JPanel
 	}
 	
 	public void drawTABArea(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR); 
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
 		g.drawString("G", x-16, y+16);
@@ -262,7 +281,7 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawTechnicArea(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((wave_zoom*x_grid_unit)/0.002f); 
+		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR); 
 		String label="technic:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -290,16 +309,16 @@ public class WaveSynchPane extends JPanel
 		value_bpm = bpm;
 
 		
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16ºÐÀ½Ç¥ ±âÁØ.
-		x_grid_unit *= (value_beat!=0)?1:2;			// 8ºÐÀ½Ç¥ ±âÁØÀÌ¶ó¸é 2¹è Å©±â·Î ÇÔ.
-		time_grid = x_grid_unit*8;		// ½Ã°£ Ç¥½Ã¸¦ À§ÇÑ grid °£°Ý.
+		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½.
+		x_grid_unit *= (value_beat!=0)?1:2;			// 8ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ 2ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ ï¿½ï¿½.
+		time_grid = x_grid_unit*8;		// ï¿½Ã°ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ grid ï¿½ï¿½ï¿½ï¿½.
 
-		// 60bpm 4/4¹ÚÀÚ 1ÃÊ = 48*8 = 384px ==> 1beat ´Â 48px,		60bpmÀº, 1/60À¸·Î ºÁ¾ß ÇÏ¹Ç·Î,   
-		// 80bpm 4/4¹ÚÀÚ 1ÃÊ = 48*8 = 384px ==> 1beat ´Â ??px,  	80bpmÀº 1/80À¸·Î ÇØ¼­,  1/60:48px = 1/80:??px  ??=48*60/80,  Áï,  48*60/bpm À¸·Î Á¤ÇÑ´Ù. 
+		// 60bpm 4/4ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ = 48*8 = 384px ==> 1beat ï¿½ï¿½ 48px,		60bpmï¿½ï¿½, 1/60ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½,   
+		// 80bpm 4/4ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ = 48*8 = 384px ==> 1beat ï¿½ï¿½ ??px,  	80bpmï¿½ï¿½ 1/80ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¼ï¿½,  1/60:48px = 1/80:??px  ??=48*60/80,  ï¿½ï¿½,  48*60/bpm ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½. 
 		repaint();
 	}
 
-	public void setQuaver(int isSemiQuaver) {	// 0=8ºÐÀ½Ç¥, 1=16ºÐÀ½Ç¥
+	public void setQuaver(int isSemiQuaver) {	// 0=8ï¿½ï¿½ï¿½ï¿½Ç¥, 1=16ï¿½ï¿½ï¿½ï¿½Ç¥
 		System.out.println("set Quaver: " + isSemiQuaver);
 		value_beat = isSemiQuaver;
 		if (isSemiQuaver==1) {
@@ -308,26 +327,26 @@ public class WaveSynchPane extends JPanel
 			beat_per_bar = 8;
 		}		 
 		
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16ºÐÀ½Ç¥ ±âÁØ.
-		x_grid_unit *= (value_beat!=0)?1:2;			// 8ºÐÀ½Ç¥ ±âÁØÀÌ¶ó¸é 2¹è Å©±â·Î ÇÔ.
-		time_grid = x_grid_unit*8;		// ½Ã°£ Ç¥½Ã¸¦ À§ÇÑ grid °£°Ý.
+		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½.
+		x_grid_unit *= (value_beat!=0)?1:2;			// 8ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ 2ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ ï¿½ï¿½.
+		time_grid = x_grid_unit*8;		// ï¿½Ã°ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ grid ï¿½ï¿½ï¿½ï¿½.
 		repaint();
 	}
 
-	public void setMeter(int meter) {	// '0'=2/4¹ÚÀÚ, '1'=3/4¹ÚÀÚ, '2'=4/4¹ÚÀÚ, '3'=6/8¹ÚÀÚ
+	public void setMeter(int meter) {	// '0'=2/4ï¿½ï¿½ï¿½ï¿½, '1'=3/4ï¿½ï¿½ï¿½ï¿½, '2'=4/4ï¿½ï¿½ï¿½ï¿½, '3'=6/8ï¿½ï¿½ï¿½ï¿½
 		value_meter = meter; 
 		switch(value_meter) {
-			case 0:		// 2/4¹ÚÀÚ
-				System.out.println("setMeter: 2/4¹ÚÀÚ.." );
+			case 0:		// 2/4ï¿½ï¿½ï¿½ï¿½
+				System.out.println("setMeter: 2/4ï¿½ï¿½ï¿½ï¿½.." );
 				break;
-			case 1:		// 3/4¹ÚÀÚ
-				System.out.println("setMeter: 3/4¹ÚÀÚ.." );
+			case 1:		// 3/4ï¿½ï¿½ï¿½ï¿½
+				System.out.println("setMeter: 3/4ï¿½ï¿½ï¿½ï¿½.." );
 				break;
-			case 4:		// 6/8¹ÚÀÚ
-				System.out.println("setMeter: 6/8¹ÚÀÚ.." );
+			case 4:		// 6/8ï¿½ï¿½ï¿½ï¿½
+				System.out.println("setMeter: 6/8ï¿½ï¿½ï¿½ï¿½.." );
 				break;
-			default:	// 4/4¹ÚÀÚ
-				System.out.println("setMeter: 4/4¹ÚÀÚ.." );
+			default:	// 4/4ï¿½ï¿½ï¿½ï¿½
+				System.out.println("setMeter: 4/4ï¿½ï¿½ï¿½ï¿½.." );
 				break;
 		}
 		repaint();
@@ -335,9 +354,10 @@ public class WaveSynchPane extends JPanel
 
 	public void setPlayer(WavPlay p) {
 		player = p;
+		sample_rate = player.getSampleRate();
 	}
 	public void setDrawStart(int milisec) {
-		start_index = milisec;		// quaver 1°³ À½Ç¥ÀÇ ³Êºñ(½Ã°£)À» milli-second °ªÀ¸·Î ³ª´©¾î¾ß ÇÒ °Í. - Sampling ÁÖÆÄ¼ö¸¦ ±âÁØÀ¸·Î °è»êÇØ¾ß ÇÔ.
+		start_index = milisec;		// quaver 1ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Êºï¿½(ï¿½Ã°ï¿½)ï¿½ï¿½ milli-second ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½. - Sampling ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½.
 	}
 	public void setPlayingPosition(int milisec) {
 		playing_position = milisec;
@@ -354,21 +374,21 @@ public class WaveSynchPane extends JPanel
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
-		if ( e.getWheelRotation() > 0) {	// È®´ë
-			wave_zoom *= 1.5f;
-			if (wave_zoom > ZOOM_IN_LIMIT) {			// 1.0f) {
+		if ( e.getWheelRotation() > 0) {	// È®ï¿½ï¿½
+			zoom_factor *= 1.5f;
+			if (zoom_factor > ZOOM_IN_LIMIT) {			// 1.0f) {
 				System.out.println("Zoom in limited.");
-				wave_zoom = ZOOM_IN_LIMIT;
+				zoom_factor = ZOOM_IN_LIMIT;
 			}
-		} else if ( e.getWheelRotation() < 0) {	// Ãà¼Ò
-			wave_zoom *= 0.75f;
-			if (wave_zoom < ZOOM_OUT_LIMIT) {			// 0.002f) {
+		} else if ( e.getWheelRotation() < 0) {	// ï¿½ï¿½ï¿½
+			zoom_factor *= 0.75f;
+			if (zoom_factor < ZOOM_OUT_LIMIT) {			// 0.002f) {
 				System.out.println("Zoom out limited.");
-				wave_zoom = ZOOM_OUT_LIMIT;
+				zoom_factor = ZOOM_OUT_LIMIT;
 			}
 		}
 
-		System.out.println("wave_zoom = " + wave_zoom);
+		System.out.println("zoom_factor = " + zoom_factor);
 		repaint();
 	}
 
@@ -378,7 +398,7 @@ public class WaveSynchPane extends JPanel
 	public void mouseDragged(MouseEvent e) {
 		if (mousePt==null)
 			return;
-		int num_per_px = (int)(1.0f/wave_zoom);		// 1ÇÈ¼¿³ÐÀÌÀÇ wave dataµé °¹¼ö
+		int num_per_px = (int)(1.0f/zoom_factor);		// 1ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ wave dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		start_index = prev_start_index - (e.getX()-mousePt.x)*num_per_px ;
 		if (start_index < 0)
 			start_index = 0;
