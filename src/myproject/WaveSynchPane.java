@@ -114,37 +114,27 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawRuler(Graphics g, int x, int y, int w, int h) {
-		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR);
-/*
-		g.setColor(rulerColor);
-		g.fillRect( x, y, w, h );
-		g.setFont(gridFont);
-		g.setColor(rulerFontColor);
-		for (int i=0; i<w; i+= unit_width) {
-			if (i%time_grid==0) {
-				g.drawString( ""+i, 4+x+i, y+h-8 );
-				g.drawLine(x+i, y+h-8, x+i, y+h-1);
-			} else {
-				g.drawLine(x+i, y+h-4, x+i, y+h-1);
-			}
-		}
-*/
+//		int unit_width = (int)((zoom_factor*x_grid_unit)/DEFAULT_ZOOM_FACTOR);
+
 		g.setColor(rulerColor);
 		g.fillRect( x, y, w, h );
 		g.setFont(gridFont);
 		g.setColor(rulerFontColor);
 
-		float pixels_per_1sec = (float)X_CELL_WHEN_60BPM * (beat_per_bar*2) / zoom_factor;		// 1초 간격에 해당하는 값, 4/4박자 60bpm일 때 2마디 = 1초 = 96px 
-		float num_index_for_1_pixel =	(float)sample_rate / pixels_per_1sec;
-		
-		for (int i=0; i<w; i+= unit_width) {
-			if ( (i/unit_width)%beat_per_bar==0) {
-				g.drawString( ""+((int)(pixels_per_1sec*i)/1000)+"."+((int)(pixels_per_1sec*i)%1000), 4+x+i, y+h-8 );
+		int start_index = 0;
+		int samples_per_pixel = (int)((DEFAULT_ZOOM_FACTOR/zoom_factor)*(sample_rate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
+
+		for (int i=0; i<w; i++) {
+			int sample_index = ((i*samples_per_pixel)+start_index);
+			int next_sample_index = (((i+1)*samples_per_pixel)+start_index);
+			if ( (sample_index/(sample_rate))-(next_sample_index/(sample_rate)) != 0) {	// 바뀌는 경우.
+				g.drawString( ""+((int)(next_sample_index/(sample_rate/2))+"."+((int)((next_sample_index*1000)/(sample_rate/2)))%1000), 4+x+i, y+h-8 );
 				g.drawLine(x+i, y+h-8, x+i, y+h-1);
-			} else {
+			} else if ((sample_index/(sample_rate/2))-(next_sample_index/(sample_rate/2)) != 0) {	// 바뀌는 경우.
 				g.drawLine(x+i, y+h-4, x+i, y+h-1);
 			}
 		}
+		
 	}
 
 	public void drawWaveData(Graphics g, int x, int y, int w, int h) {
@@ -168,6 +158,30 @@ public class WaveSynchPane extends JPanel
 		int max_amplitude = h/2; 		// WINDOW SIZE�� ���� �ִ� ������ (pixel)
 
 		g.setColor(Color.GRAY);
+
+		float samples_per_pixel = ((DEFAULT_ZOOM_FACTOR/zoom_factor)*(sample_rate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
+//		float samples_per_pixel = ((float)sample_rate/2) / 24;		// 24는 8분음표 1개에 해당하는 grid 크기.
+
+		for (int i=0; i<w; i++) {
+			int start = (int)((samples_per_pixel*i)+start_index);
+			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int j, value, max, min, prev_min, xpos;
+
+			if (wave_data!=null) {
+				xpos = x+i;
+				max=0;
+				min=255;
+				prev_min = min;
+				for (j=start; j<end; j++) {
+					value = wave_data[start+j]&0xFF;
+					max=(max<value)?value:max;
+					min=(min>value)?value:min;
+				}
+				g.drawLine( xpos, center_y+ min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
+				g.drawLine( xpos, center_y+ prev_min*max_amplitude/128, xpos, center_y+max*max_amplitude/128 );
+			}
+		}
+/*
 		if (wave_data!=null) {
 			int i, j, value, max, min, prev_min, xpos;
 			int num_per_px = (int)(1.0f/zoom_factor);		// 1�ȼ������� wave data�� ����
@@ -208,6 +222,7 @@ public class WaveSynchPane extends JPanel
 					break;
 			}
 		}
+	*/
 	}
 
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
