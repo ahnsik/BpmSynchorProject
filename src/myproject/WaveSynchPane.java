@@ -162,18 +162,19 @@ public class WaveSynchPane extends JPanel
 		float samples_per_pixel = ((DEFAULT_ZOOM_FACTOR/zoom_factor)*(sample_rate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
 //		float samples_per_pixel = ((float)sample_rate/2) / 24;		// 24는 8분음표 1개에 해당하는 grid 크기.
 
-		for (int i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
-			int j, value, max, min, prev_min, xpos;
-
-			if (wave_data!=null) {
+		int j, value, max, min, prev_min, xpos;
+		if (wave_data!=null) {
+			max=0;
+			min=255;
+			for (int i=0; i<w; i++) {
 				xpos = x+i;
+				int start = (int)((samples_per_pixel*i)+start_index);
+				int end = (int)((samples_per_pixel*(i+1))+start_index);
+				prev_min = min;
 				max=0;
 				min=255;
-				prev_min = min;
 				for (j=start; j<end; j++) {
-					value = wave_data[start+j]&0xFF;
+					value = wave_data[j]&0xFF;
 					max=(max<value)?value:max;
 					min=(min>value)?value:min;
 				}
