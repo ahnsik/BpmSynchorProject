@@ -109,7 +109,9 @@ public class BpmSynchorWindow {
 
 				if (data.mMusicURL != null) {
 //					File mp3file = new File( f.getParent(), data.mMusicURL) ;
-					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
+//					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
+					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\86BPM_Drum_Beat_3min_8000hz_8bitMono.wav");
+					
 			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
 						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
