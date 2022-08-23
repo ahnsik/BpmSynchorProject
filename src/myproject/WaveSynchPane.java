@@ -148,20 +148,22 @@ public class WaveSynchPane extends JPanel
 		int center_y = y;		//+h/2;			// Waveform �߽ɼ�
 		int max_amplitude = h/2; 		// WINDOW SIZE�� ���� �ִ� ������ (pixel)
 
-		int bpm_sampleRate = (value_bpm*sample_rate)/60;
-		float samples_per_pixel = ((DEFAULT_ZOOM_FACTOR/zoom_factor)*(bpm_sampleRate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
+//		int bpm_sampleRate = (value_bpm*sample_rate)/60;
+//		float samples_per_pixel = ((DEFAULT_ZOOM_FACTOR/zoom_factor)*(bpm_sampleRate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
+//		int bpm_sampleRate = (value_bpm*sample_rate)/60;
+		float samples_per_pixel = ((DEFAULT_ZOOM_FACTOR/zoom_factor)*(sample_rate/2) / 24);		// 24는 8분음표 1개에 해당하는 grid 크기.
 
 		int samples_per_quaver, devider;
 		if (value_beat==0) {	//	'0' = quaver(8음표단위), '1'=semi-quaver(16분음표단위)
-			samples_per_quaver = (bpm_sampleRate/4)*2;
+			samples_per_quaver = (sample_rate/4)*2;
 			devider = 8;
 		} else {
-			samples_per_quaver = (bpm_sampleRate/4);
+			samples_per_quaver = (sample_rate/4);
 			devider = 16;
 		}
 		
 		for (int i=0; i<w; i++) {
-			int index = (int)((samples_per_pixel*i)+start_index);
+			int index = (int)( (((samples_per_pixel*i)+start_index)*value_bpm)/60);
 			if ( (index%samples_per_quaver) != 0) {
 				if ( (index/samples_per_quaver)%devider == 0 ) {  
 					g.setColor(beatBgColor_H);
