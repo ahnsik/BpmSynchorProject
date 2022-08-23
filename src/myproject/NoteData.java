@@ -149,7 +149,8 @@ public class NoteData {
 	    	for (int i=0; i<10; i++) {
 		    	System.out.println("NoteData("+i+"):" + notes.getJSONObject(i) );
 	    	}
-	    
+	    	numNotes = notes.length();
+
 	    } catch(Exception e1) {
 	    	e1.printStackTrace();
 	    	return false;
@@ -320,5 +321,10 @@ public class NoteData {
     public String getSongTitle() {
     	return this.mSongTitle;
     }
+
+	public int getSize() {
+		// TODO Auto-generated method stub
+		return numNotes;
+	}
     
 }

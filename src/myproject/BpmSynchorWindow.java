@@ -106,6 +106,9 @@ public class BpmSynchorWindow {
 
 				data = new NoteData();
 				data.loadFromFile(f);
+				if (waveSynchPane != null) {
+					waveSynchPane.setNoteData(data);
+				}
 
 				if (data.mMusicURL != null) {
 //					File mp3file = new File( f.getParent(), data.mMusicURL) ;
@@ -120,10 +123,10 @@ public class BpmSynchorWindow {
 						setWaveData(mp3file); 
 					}
 
-//					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
-//			    	System.out.println("Music file set:" + data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
-//			    	player = new WavPlay(mp3file);
-//			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
+					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
+			    	System.out.println("Music file set:" + data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
+			    	player = new WavPlay(mp3file);
+			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {
 			    	System.out.println("No music scpecified.");
 			    }

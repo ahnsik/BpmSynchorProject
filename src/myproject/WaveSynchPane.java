@@ -61,6 +61,7 @@ public class WaveSynchPane extends JPanel
 												// default �� 0.01 �� ������ ������ ���δ�. = �����ھ�� ������ ���� ���ǿ� ���� ���Ⱑ �� ����.
 
 	private byte[] wave_data;
+	private NoteData note_data = null;
 
 	public WaveSynchPane() {
 		canvas_width = getWidth();
@@ -370,6 +371,11 @@ public class WaveSynchPane extends JPanel
 		wave_data = data;
 	}
 
+	public void setNoteData(NoteData data) {
+		System.out.println("Note Data SET : length=" + data.getSize() );
+		note_data = data;
+	}
+	
 	public void setBpm(int bpm) {
 		System.out.println("set BPM: " + bpm);
 		value_bpm = bpm;
