@@ -283,6 +283,24 @@ public class BpmSynchorWindow {
 		lblMeter.setHorizontalAlignment(SwingConstants.RIGHT);
 		
 		JComboBox cbMeter = new JComboBox();
+		cbMeter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				switch(cbMeter.getSelectedItem().toString() ) {
+					case "2/4":
+						waveSynchPane.setMeter( 0 );		// 0=2/2, 1=3/4, 2=4/4, 3=6/8 박자. 
+						break;
+					case "3/4":
+						waveSynchPane.setMeter( 1 );
+						break;
+					case "6/8":
+						waveSynchPane.setMeter( 3 );
+						break;
+					default:
+						waveSynchPane.setMeter( 2 );
+						break;
+				}
+			}
+		});
 		cbMeter.setModel(new DefaultComboBoxModel(new String[] {"2/4", "3/4", "4/4", "6/8"}));
 		
 		JLabel lblBpm = new JLabel("BPM:");
@@ -484,7 +502,7 @@ public class BpmSynchorWindow {
 			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
 			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
 			System.out.println("byte rate =1�ʴ� byte ��:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
-			System.out.println("Sample�� bit��:"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
+			System.out.println("num bits per Sample :"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
 			System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
 
 			byteRead = is.read(Buffer);
