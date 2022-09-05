@@ -112,8 +112,8 @@ public class BpmSynchorWindow {
 
 				if (data.mMusicURL != null) {
 //					File mp3file = new File( f.getParent(), data.mMusicURL) ;
-//					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
-					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\86BPM_Drum_Beat_3min_8000hz_8bitMono.wav");
+					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
+//					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\86BPM_Drum_Beat_3min_8000hz_8bitMono.wav");
 
 			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
@@ -302,6 +302,7 @@ public class BpmSynchorWindow {
 			}
 		});
 		cbMeter.setModel(new DefaultComboBoxModel(new String[] {"2/4", "3/4", "4/4", "6/8"}));
+		cbMeter.setSelectedIndex(2);
 		
 		JLabel lblBpm = new JLabel("BPM:");
 		lblBpm.setHorizontalAlignment(SwingConstants.RIGHT);
