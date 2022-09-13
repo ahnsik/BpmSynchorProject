@@ -25,7 +25,7 @@ public class WaveSynchPane extends JPanel
 	private static final long serialVersionUID = 7740732731922064721L;
 	private static final int X_OFFSET = 80;
 	private static final int X_PADDING = 16;
-	private static final int Y_PADDING = 16;
+	private static final int Y_PADDING = 10;
 	private static final int FONT_HEIGHT = 28;
 	private static final int RULER_THICKNESS = 16;
 	
@@ -38,12 +38,12 @@ public class WaveSynchPane extends JPanel
 		private static final float ZOOM_IN_LIMIT = 0.5f;
 		private static final float ZOOM_OUT_LIMIT = 0.002f;
 		private static final float DEFAULT_ZOOM_FACTOR = 0.002f;
-		private static final int   DEFAULT_QUAVER_PIXEL = 24;
+//		private static final int   DEFAULT_QUAVER_PIXEL = 24;
 		private static final int X_CELL_WHEN_60BPM = 6;
 
 	private static final int DEFAULT_RULER_UNIT_PER_SECOND = 40;		// 1초에 해당하는 간격= 40pixel, 1마디(4*40)= 160pixel, 윈도우 크기(160*4마디) = 640pixel... 
-	private int ruler_unit_per_sec = DEFAULT_RULER_UNIT_PER_SECOND;		// 반드시 4의 배수 이어야 함. 왜냐면, 8분음표 기준 2의 배수, 16분음표 기준 4의 배수 이어야 하므로. 
-	
+//	private int ruler_unit_per_sec = DEFAULT_RULER_UNIT_PER_SECOND;		// 반드시 4의 배수 이어야 함. 왜냐면, 8분음표 기준 2의 배수, 16분음표 기준 4의 배수 이어야 하므로. 
+
 
 	private int canvas_width;
 	private int canvas_height;
@@ -53,7 +53,7 @@ public class WaveSynchPane extends JPanel
 	private static Color bg_color, rulerColor, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
 
 	private float samples_per_quaver;		// 8분음표 1개의 길이.
-	private float samples_per_pixel;		// 24는 8분음표 1개에 해당하는 grid 크기.
+	private float samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
 
 	private int value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
 	private int value_beat = 0;	//	'0' = quaver(8����ǥ), '1'=semi-quaver(16����ǥ) 
@@ -93,8 +93,6 @@ public class WaveSynchPane extends JPanel
 		technicAreaColor = new Color(200,240,220);
 		technicAreaColor_H = new Color(200,250,230);  
 
-	/*
-	 */
 		File file60bpm = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min_8000hz.wav");
 		ReadWaveData(file60bpm);
 		wave_60bpm = new byte[wave_data.length];
@@ -115,6 +113,14 @@ public class WaveSynchPane extends JPanel
 		wave_63bpm = new byte[wave_data.length];
 		System.arraycopy(wave_data, 0, wave_63bpm, 0, wave_data.length);
 		System.out.println("63bpm : " + wave_63bpm[0]);
+
+		// set variables to default values.
+		samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
+		value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
+		value_beat = 0;	//	'0' = quaver(8����ǥ), '1'=semi-quaver(16����ǥ) 
+		value_bpm = 80;	// beats per minute.
+		sample_rate = 8000;
+		playing_position = 0;
 	}
 
 	protected void ReadWaveData(File f) {
@@ -167,10 +173,10 @@ public class WaveSynchPane extends JPanel
 		g.setColor(bg_color);
 		g.fillRect( 0, 0, canvas_width, canvas_height );
 
-		drawBGGrid(g, X_OFFSET, Y_PADDING, canvas_width-X_OFFSET-X_PADDING, canvas_height-Y_PADDING*2 );
+		drawBGGrid(g, X_OFFSET, Y_PADDING, canvas_width-X_OFFSET-X_PADDING, canvas_height-Y_PADDING );
 
 		// ��� Ruler
-		drawRuler(g, X_OFFSET, 10, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
+		drawRuler(g, X_OFFSET, Y_PADDING, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
 		// �ϴ� Ruler
 		drawRuler(g, X_OFFSET, canvas_height-RULER_THICKNESS, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
 
@@ -204,7 +210,6 @@ public class WaveSynchPane extends JPanel
 
 		/////////////////////// 바탕 격자를 그림. 
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
-		samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
 
 		boolean grid = false, quaver_grid = false;
 		
@@ -230,9 +235,9 @@ public class WaveSynchPane extends JPanel
 			g.setColor(Color.DARK_GRAY);	// 눈금 색깔
 			if (isQuaver) {
 				g.drawLine(x, y+2, x, y+RULER_THICKNESS);
-				g.drawString("time_msec", x+2, y+RULER_THICKNESS-8);
+//				g.drawString("time_msec", x+2, y+RULER_THICKNESS-8);
 				g.drawLine(x, y+h-RULER_THICKNESS, x, y+h-RULER_THICKNESS+16);
-				g.drawString("time_msec", x+2, y+h);
+//				g.drawString("time_msec", x+2, y+h);
 			} else {
 				g.drawLine(x, y+8, x, y+RULER_THICKNESS);
 				g.drawLine(x, y+h-RULER_THICKNESS, x, y+h-RULER_THICKNESS+8);
@@ -282,30 +287,30 @@ public class WaveSynchPane extends JPanel
 
 	public void drawRuler(Graphics g, int x, int y, int w, int h) {
 		int i, j;
+		String time_string= "";
+		int time_msec = 0, prev_t = 0;
 
-		int times = 0;
-		boolean grid, quaver_grid;
-// 어딘가 한 곳에서 몰아서 계산 하자.
-//		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
-//		samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
+		boolean grid;	
 
+		g.setFont(gridFont);
+		g.setColor(rulerFontColor);
 		for ( i=0; i<w; i++) {
 			int start = (int)((samples_per_pixel*i)+start_index);
 			int end = (int)((samples_per_pixel*(i+1))+start_index);
 
 			grid=false;
-			quaver_grid = false;
 			for (j=start; j<end; j++) {
 				if (j% (int)samples_per_quaver==0)
 					grid=true;
-				if (j% (int)(samples_per_quaver*quaver_mode)==0)
-					quaver_grid = true;
 			}
-			if (grid) {		// 눈금 표시 경계	// 여기는 좀 바꿔 주어야 겠다.  따로 time 표시 방법을 msec 기준으로 해서 그릴 방법을 찾아 보기로 
-				if (quaver_grid) {				// 마디 시작 첫번째
-					g.setFont(gridFont);
-					g.setColor(rulerFontColor);			
-					g.drawString( ""+(float)times/1000, 4+x+i, y+h-8 );
+
+			time_msec = (start*1000/sample_rate);			
+			if (grid) {
+				if ((prev_t/1000) != (time_msec/1000)) {
+					time_string = String.format("%d:%02d.%03d", (time_msec/60000), (time_msec/1000)%60, time_msec%1000 );
+					g.drawLine(x+i, y, x+i, y+h-1);
+					g.drawString( time_string, 4+x+i, y+h-2 );
+					prev_t = time_msec;
 				}
 			}
 		}
@@ -668,12 +673,14 @@ public class WaveSynchPane extends JPanel
 		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
 		if ( e.getWheelRotation() > 0) {	// Ȯ��
 			zoom_factor *= 1.5f;
+			samples_per_pixel += 10.0f;
 			if (zoom_factor > ZOOM_IN_LIMIT) {			// 1.0f) {
 				System.out.println("Zoom in limited.");
 				zoom_factor = ZOOM_IN_LIMIT;
 			}
 		} else if ( e.getWheelRotation() < 0) {	// ���
 			zoom_factor *= 0.75f;
+			samples_per_pixel -= 10.0f;
 			if (zoom_factor < ZOOM_OUT_LIMIT) {			// 0.002f) {
 				System.out.println("Zoom out limited.");
 				zoom_factor = ZOOM_OUT_LIMIT;
