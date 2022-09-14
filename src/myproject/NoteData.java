@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -25,15 +26,17 @@ public class NoteData {
     public  float   mBpm;
     public  int     numNotes;
 
-    // �뿬湲� �븘�옒�쓽 諛곗뿴�뱾�� 吏꾩쭨 �뿰二쇳빐�빞 �븷 �뜲�씠�꽣 �뱾..
-    public  long[]       timeStamp;
-    public  String[]    chordName;
-    public  String[]    stroke;
-    public  String[]    technic;
-    public  String[][]  tab;
-    public  String[][]  note;
-    public  boolean[][] note_played;
-    public  String[]    lyric;
+//    // �뿬湲� �븘�옒�쓽 諛곗뿴�뱾�� 吏꾩쭨 �뿰二쇳빐�빞 �븷 �뜲�씠�꽣 �뱾..
+//    public  long[]       timeStamp;
+//    public  String[]    chordName;
+//    public  String[]    stroke;
+//    public  String[]    technic;
+//    public  String[][]  tab;
+//    public  String[][]  note;
+//    public  boolean[][] note_played;
+//    public  String[]    lyric;
+
+    public Note[] notes;
 
     public  int[]  score;        // time diff what with played.
 
@@ -44,88 +47,17 @@ public class NoteData {
         mSongTitle = null;
         mStartOffset = 0;
         mBpm = 0.0f;
-        numNotes = 0;
+//        numNotes = 0;
         // �뿬湲� �븘�옒�쓽 諛곗뿴�뱾�� 吏꾩쭨 �뿰二쇳빐�빞 �븷 �뜲�씠�꽣 �뱾..
-        timeStamp = null;
-        chordName = null;
-        stroke = null;
-        technic = null;
-        tab = null;
-        note = null;
-        note_played = null;
+//        timeStamp = null;
+//        chordName = null;
+//        stroke = null;
+//        technic = null;
+//        tab = null;
+//        note = null;
+//        note_played = null;
         score = null;
     }
-
-/*
-    public boolean loadFromFile(File dir, String fileName) {
-        String   UkeDataRead;
-        System.out.println("loadFromFile : "+dir+"/"+fileName );
-        UkeDataRead = readTextFile(dir+"/"+fileName );
-        return setData(UkeDataRead);
-    }
-
-    private String readTextFile(String path) {
-        String  datafile = null;
-        File file = new File(path);
-        String  line;
-        try {
-            FileReader fr = new FileReader(file);
-            if (fr==null) {
-                System.out.println("File Reader Error:" + fr);
-                return null;
-            }
-            BufferedReader buffrd = new BufferedReader(fr);
-            if (buffrd==null) {
-                System.out.println("File Buffered Read Error:" + buffrd);
-                return null;
-            }
-            datafile = "";
-            System.out.println("Readey to vote !!");
-            while ( (line=buffrd.readLine() ) != null) {
-                if (line == null || line.trim().length() <= 0) {
-                    System.out.println("Skip Empty line. !!");
-                } else if ( (line.charAt(0)=='#') && (line.charAt(1)=='#') ) {     // 泥섏쓬 �떆�옉�븯�뒗寃� ##濡� �떆�옉�븯�뒗 �씪�씤�� comment 濡� 泥섎━ �븿.
-                    System.out.println("This Line is comments. !!" );
-                } else {
-                    datafile += line;
-                }
-            }
-            System.out.println("buffrd.close !!");
-            buffrd.close();
-            fr.close();
-//            System.out.println("fullText="+datafile);
-        } catch(Exception e) {
-            System.out.println("Exceptions ");
-            e.printStackTrace();
-        }
-        return datafile;
-    }
-*/
-    
-/*
-    public  String  mCategory;          // �뿰二쇰갑踰� : Chord / 諛대뱶(�떒�쓬)�뿰二� / �븨嫄곗뒪���씪 / �븘瑜댄럹吏��삤, etc..
-    public  String  mAuthor;            // �븙蹂� �젣�옉�옄
-    public  String  mBasicBeat;         // 諛뺤옄 : 2/4, 3/4, 4/4, 6/8, ...
-
-    public  int     mStartOffset;       // 泥섏쓬 �떆�옉�븷 �쐞移섏쓽 �삤�봽�뀑
-    public  int     mLevel;             // 怨≪쓽 �궃�씠�룄 �젅踰�. �닽�옄媛� �쟻�쓣 �닔濡� �돩�슫 �젅踰�.
-    public  float   mBpm;
-    public  int     numNotes;
-
-    // �뿬湲� �븘�옒�쓽 諛곗뿴�뱾�� 吏꾩쭨 �뿰二쇳빐�빞 �븷 �뜲�씠�꽣 �뱾..
-    public  long[]       timeStamp;
-    public  String[]    chordName;
-    public  String[]    stroke;
-    public  String[]    technic;
-    public  String[][]  tab;
-    public  String[][]  note;
-    public  boolean[][] note_played;
-    public  String[]    lyric;
-
-    public  int[]  score;        // time diff what with played.
-
- */
-    
 
     public boolean loadFromFile(File f) {
 		JSONParser parser = new JSONParser();
@@ -145,11 +77,35 @@ public class NoteData {
 	    	System.out.println("mp3 source: " + mMusicURL);
 	    	System.out.println("comment: " + mCommentary);
 
-	    	JSONArray notes = (JSONArray)jsonObject.getJSONArray("notes");
-	    	for (int i=0; i<10; i++) {
-		    	System.out.println("NoteData("+i+"):" + notes.getJSONObject(i) );
+	    	JSONArray temp_notes = (JSONArray)jsonObject.getJSONArray("notes");
+
+	    	numNotes = temp_notes.length();
+	    	System.out.println("total numOfNotes: " + numNotes );
+	    	notes = new Note[numNotes];
+	    	
+	    	if (notes != null) {
+		    	for (int i=0; i<numNotes; i++) {
+			    	JSONObject one_chord = temp_notes.getJSONObject(i);
+//			    	System.out.println(":" + i + ":"+ one_chord.toString() + ", notes["+i+"]="+ notes[i] );
+			    	notes[i] = new Note();
+			    	notes[i].timeStamp = one_chord.getInt("timestamp");
+		    		notes[i].chordName = one_chord.getString("chord");
+		    		try {
+			    		notes[i].technic = one_chord.getString("technic");
+		    		} catch (JSONException jsonE) {
+		    			notes[i].technic = "";
+		    		}
+		    		try {
+			    		notes[i].lyric = one_chord.getString("lyric");
+		    		} catch (JSONException jsonE) {
+		    			notes[i].lyric = "";
+		    		}
+			    	JSONArray tabArray = (JSONArray)one_chord.getJSONArray("tab");
+			    	notes[i].tab = new String[tabArray.length()];
+			    	JSONArray noteArray = (JSONArray)one_chord.getJSONArray("note");
+			    	notes[i].note = new String[noteArray.length()];
+		    	}
 	    	}
-	    	numNotes = notes.length();
 
 	    } catch(Exception e1) {
 	    	e1.printStackTrace();
@@ -175,7 +131,7 @@ public class NoteData {
             json.put("start_offset", mStartOffset);
             json.put("bpm", mBpm);
 
-            JSONArray notes = new JSONArray();
+/*            JSONArray notes = new JSONArray();
             for (int i=0; i< numNotes; i++) {
                 JSONObject oneChord = new JSONObject();
                 oneChord.put("timestamp", timeStamp[i] );
@@ -203,6 +159,7 @@ public class NoteData {
 
                 notes.put(oneChord);
             }
+*/
             json.put("notes", notes);
         } catch (Exception e) {
             e.printStackTrace();
@@ -214,9 +171,9 @@ public class NoteData {
 
     public boolean  setData(String dataFileString) {
 
-//        System.out.println("-=========== DataFile Dump ===========-");
-//        System.out.println(dataFileString );
-//        System.out.println("-=========== DataFile Dump END ===========-");
+        System.out.println("-=========== DataFile Dump ===========-");
+        System.out.println(dataFileString );
+        System.out.println("-=========== DataFile Dump END ===========-");
         try {
             System.out.println("start parse" );
             JSONObject  ukeData = new JSONObject(dataFileString);
@@ -236,7 +193,7 @@ public class NoteData {
             System.out.println("Title: " + this.mSongTitle + ", BPM: "+ this.mBpm );
             System.out.println("notes.length= " + this.numNotes );
 
-            this.timeStamp = new long[this.numNotes];
+/*            this.timeStamp = new long[this.numNotes];
             this.score = new int[this.numNotes];
             this.chordName = new String[this.numNotes];
             this.stroke = new String[this.numNotes];
@@ -284,7 +241,7 @@ public class NoteData {
                     this.lyric[i] = null;
                 }
             }
-
+*/
             try {
                 System.out.println("start to parsing.." );
                 this.mBasicBeat = ukeData.getString("basic_beat");
@@ -326,5 +283,26 @@ public class NoteData {
 		// TODO Auto-generated method stub
 		return numNotes;
 	}
-    
+
+
+	/**
+	 *  A Note Class for a single stroke.
+	 */
+	class Note {
+	    public  long		timeStamp;
+	    public  String		chordName;
+	    public  String		technic;
+	    public  String[]	tab;
+	    public  String[]	note;
+	    public  String		lyric;
+	    
+	    public void Note() {
+		    timeStamp = 0;
+		    chordName = "";
+		    technic = "";
+		    tab = new String[0];
+		    note = new String[0];
+		    lyric = "";
+	    }
+	}
 }
