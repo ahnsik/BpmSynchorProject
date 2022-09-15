@@ -25,6 +25,11 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -32,6 +37,8 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JFormattedTextField;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -111,16 +118,14 @@ public class BpmSynchorWindow {
 				}
 
 				if (data.mMusicURL != null) {
-//					File mp3file = new File( f.getParent(), data.mMusicURL) ;
 					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
-//					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\86BPM_Drum_Beat_3min_8000hz_8bitMono.wav");
 
 			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
 						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
 						player.setView(waveSynchPane);
 						waveSynchPane.setPlayer(player);
-						setWaveData(mp3file); 
+						setMp3Data(mp3file); 
 					}
 
 					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
@@ -484,6 +489,117 @@ public class BpmSynchorWindow {
 		waveSynchPane.addKeyListener(waveSynchPane);		// KeyListener
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 		
+	}
+
+	/*  refer : https://stackoverflow.com/questions/14085199/mp3-to-wav-conversion-in-java  */
+	public static byte [] getAudioDataBytes(byte [] sourceBytes, AudioFormat audioFormat) throws UnsupportedAudioFileException, IllegalArgumentException, Exception{
+        if(sourceBytes == null || sourceBytes.length == 0 || audioFormat == null){
+            throw new IllegalArgumentException("Illegal Argument passed to this method");
+        }
+
+        ByteArrayInputStream bais = null;
+        ByteArrayOutputStream baos = null;
+        AudioInputStream sourceAIS = null;
+        AudioInputStream convert1AIS = null;
+        AudioInputStream convert2AIS = null;
+
+        try{
+            bais = new ByteArrayInputStream(sourceBytes);
+            sourceAIS = AudioSystem.getAudioInputStream(bais);
+            AudioFormat sourceFormat = sourceAIS.getFormat();
+            AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels()*2, sourceFormat.getSampleRate(), false);
+            convert1AIS = AudioSystem.getAudioInputStream(convertFormat, sourceAIS);
+            convert2AIS = AudioSystem.getAudioInputStream(audioFormat, convert1AIS);
+
+            baos = new ByteArrayOutputStream();
+
+            byte [] buffer = new byte[8192];
+            while(true){
+                int readCount = convert2AIS.read(buffer, 0, buffer.length);
+                if(readCount == -1){
+                    break;
+                }
+                baos.write(buffer, 0, readCount);
+            }
+            return baos.toByteArray();
+        } catch(UnsupportedAudioFileException uafe){
+            //uafe.printStackTrace();
+            throw uafe;
+        } catch(IOException ioe){
+            //ioe.printStackTrace();
+            throw ioe;
+        } catch(IllegalArgumentException iae){
+            //iae.printStackTrace();
+            throw iae;
+        } catch (Exception e) {
+            //e.printStackTrace();
+            throw e;
+        }finally{
+            if(baos != null){
+                try{
+                    baos.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert2AIS != null){
+                try{
+                    convert2AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(convert1AIS != null){
+                try{
+                    convert1AIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(sourceAIS != null){
+                try{
+                    sourceAIS.close();
+                }catch(Exception e){
+                }
+            }
+            if(bais != null){
+                try{
+                    bais.close();
+                }catch(Exception e){
+                }
+            }
+        }
+    }
+
+	protected void setMp3Data(File f) {
+//		setWaveData(f);
+        try {
+			AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(f);
+	        AudioInputStream ais = AudioSystem.getAudioInputStream(f);
+	        AudioFormat audioFormat = ais.getFormat();
+
+			byte[] Buffer = new byte[(int)f.length()];
+			FileInputStream is;
+			is = new FileInputStream( f );
+			int byteRead = -1;
+			byteRead = is.read(Buffer);
+
+			byte[] WavBuffer = null;
+			try {
+				WavBuffer = getAudioDataBytes(Buffer, audioFormat );
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			waveSynchPane.setWaveData(WavBuffer);
+        } catch (UnsupportedAudioFileException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 	}
 
 	protected void setWaveData(File f) {
