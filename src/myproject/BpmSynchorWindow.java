@@ -44,6 +44,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -118,7 +119,7 @@ public class BpmSynchorWindow {
 				}
 
 				if (data.mMusicURL != null) {
-					File mp3file = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min.wav");
+					File mp3file =  new File("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
 
 			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
@@ -571,8 +572,14 @@ public class BpmSynchorWindow {
 	protected void setMp3Data(File f) {
 //		setWaveData(f);
         try {
-			AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(f);
-	        AudioInputStream ais = AudioSystem.getAudioInputStream(f);
+//			AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(f);
+//        	InputStream inputStream = getClass().getClassLoader().getResourceAsStream("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
+//        	if (inputStream == null) {
+//        		System.out.println("\t------------\n\t Error..  inputStream is NULL ----------\n\n");
+//        		return ;
+//        	}
+//        	AudioInputStream ais = AudioSystem.getAudioInputStream(inputStream);
+        	AudioInputStream ais = AudioSystem.getAudioInputStream(f);
 	        AudioFormat audioFormat = ais.getFormat();
 
 			byte[] Buffer = new byte[(int)f.length()];
@@ -591,9 +598,37 @@ public class BpmSynchorWindow {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			waveSynchPane.setWaveData(WavBuffer);
+			System.out.println("WAVFILE:"+ WavBuffer[0]+" "+ WavBuffer[1]+" "+ WavBuffer[2]+" "+ WavBuffer[3]+" "+ WavBuffer[4]+" "+ WavBuffer[5]+" "+ WavBuffer[6]+" "+ WavBuffer[7]+" "
+					+ WavBuffer[8]+" "+ WavBuffer[9]+" "+ WavBuffer[10]+" "+ WavBuffer[11]+" "+ WavBuffer[12]+" "+ WavBuffer[13]+" "+ WavBuffer[14]+" "+ WavBuffer[15]+" ");
+
+			byte[] rawBuffer;
+//			if (num_of_channel==1) {		// mono ä��
+//				if (num_bits_of_sample ==8 ) {	// 8bit ����
+//					waveSynchPane.setWaveData(Buffer);
+//					frmUkeBpmSynchronizer.repaint();		// ���۸� �״�� �׳� �����ص� ��.
+//					return;
+//				} else {					// 16bit �����̸�, ���� 8��Ʈ�� ó��.
+//					rawBuffer = new byte[(byteRead/block_align)];
+//					for (int i=0; i<byteRead-block_align; i+= block_align ) {
+//						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
+//					}
+//				}
+//			} else {		// stereo ä�� �Ǵ� ��ä��.	// ������ ���⼭�� 16bit �������� �Ǵ��ؾ� ������, �׳� 8bit �� ��쿡�� 1����Ʈ ���غ� ���̹Ƿ� �׳� �Ѿ��.
+				int block_align = 4;//((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1�� Sample �� byte ��. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+				rawBuffer = new byte[((WavBuffer.length)/block_align)];
+				for (int i=0; i<(WavBuffer.length)-block_align; i+= block_align ) {
+					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
+				}
+//			}
+
+			waveSynchPane.setWaveData(rawBuffer);		//WavBuffer);
         } catch (UnsupportedAudioFileException e1) {
 			// TODO Auto-generated catch block
+        	AudioFileFormat.Type types[] = AudioSystem.getAudioFileTypes();
+    		System.out.println("System supported audio type is ..");
+        	for (int i=0; i<types.length; i++) {
+        		System.out.println("\t"+types[i]);
+        	}
 			e1.printStackTrace();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
