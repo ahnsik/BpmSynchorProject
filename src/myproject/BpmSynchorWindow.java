@@ -119,18 +119,20 @@ public class BpmSynchorWindow {
 				}
 
 				if (data.mMusicURL != null) {
-					File mp3file =  new File("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
+//					File mp3file =  new File("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
+					System.out.println("\t>> File:"+data.mMusicURL );
+					File mp3file =  new File(f.getParent()+"/"+data.mMusicURL);
 
 			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
 						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
 						player.setView(waveSynchPane);
 						waveSynchPane.setPlayer(player);
-						setMp3Data(mp3file); 
+						setWaveData(mp3file); 
 					}
 
 					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
-			    	System.out.println("Music file set:" + data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
+			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
 			    	player = new WavPlay(mp3file);
 			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {

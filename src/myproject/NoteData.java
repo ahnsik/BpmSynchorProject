@@ -193,55 +193,6 @@ public class NoteData {
             System.out.println("Title: " + this.mSongTitle + ", BPM: "+ this.mBpm );
             System.out.println("notes.length= " + this.numNotes );
 
-/*            this.timeStamp = new long[this.numNotes];
-            this.score = new int[this.numNotes];
-            this.chordName = new String[this.numNotes];
-            this.stroke = new String[this.numNotes];
-            this.technic = new String[this.numNotes];
-            this.tab = new String[this.numNotes][];
-            this.note = new String[this.numNotes][];
-            this.note_played = new boolean[this.numNotes][];
-            this.lyric = new String[this.numNotes];
-
-            for (int i = 0; i<this.numNotes; i++) {
-                JSONObject  a_note = noteData.getJSONObject(i);
-                this.score[i] = 99999999;
-                this.timeStamp[i] = a_note.getLong("timestamp");
-                try {
-                    this.chordName[i] = a_note.getString("chord");
-                } catch (Exception e) {
-                    this.chordName[i] = null;
-                }
-                try {
-                    this.stroke[i] = a_note.getString("stroke");
-                } catch (Exception e) {
-                    this.stroke[i] = null;
-                }
-                try {
-                    this.technic[i] = a_note.getString("technic");
-                } catch (Exception e) {
-                    this.technic[i] = null;
-                }
-                JSONArray   temp1 = a_note.getJSONArray("tab");
-                this.tab[i] = new String[temp1.length()];
-                for (int j=0; j<temp1.length(); j++) {
-                    this.tab[i][j] = temp1.getString(j);
-                }
-                JSONArray   temp2 = a_note.getJSONArray("note");
-                this.note[i] = new String[temp2.length()];
-                this.note_played[i] = new boolean[temp2.length()];
-                for (int j=0; j<temp2.length(); j++) {
-                    this.note[i][j] = temp2.getString(j);
-                    this.note_played[i][j] = false;
-                }
-                try {
-                    this.lyric[i] = a_note.getString("lyric");
-//                    System.out.println("lyric : " + lyric[i] );
-                } catch (Exception e) {
-                    this.lyric[i] = null;
-                }
-            }
-*/
             try {
                 System.out.println("start to parsing.." );
                 this.mBasicBeat = ukeData.getString("basic_beat");
