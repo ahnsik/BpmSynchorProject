@@ -33,30 +33,31 @@ public class WaveSynchPane extends JPanel
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
 	private static final float ZOOM_IN_LIMIT = 0.5f;
 	private static final float ZOOM_OUT_LIMIT = 0.002f;
-	private static final int X_CELL_WHEN_60BPM = 24;		/* 60BPM, 4/4���� �϶�, 16����ǥ ǥ�ø� ���� �� ���� ũ�� */
+	private static final int X_CELL_WHEN_60BPM = 24;
 	
 	private int canvas_width;
 	private int canvas_height;
 
-	/**		 */
 	private static Font gridFont, labelFont;	
 	private static Color rulerColor, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
 
-	//// �������� ����
-	private int value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
-	private int value_beat = 0;	//	'0' = quaver(8����ǥ), '1'=semi-quaver(16����ǥ) 
-	private int value_bpm = 80;	// beats per minute.
+	// 아래의 3개의 변수는 어느 하나가 바뀌면 모두 quaver 간격(samples_per_quaver) 를 새로 계산해야 함.
+	private String value_meter = "4/4";	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
+//	private String value_quaverMode = "quaver";  
+	private int	value_quaver = 2;			// 1비트를 쪼개는 값, 2 = quaver_mode ==> 8분음표 기준,  4 = semi-quaver_mode ==> 16분음표 기준
+	private float value_bpm = 60.0f;	// beats per minute.
 
-	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1ĭ�� pixel ũ��. -- depend on Zoom Size, Beats, BPM, etc...
-			// 60 bpm, quaver(8����ǥ), �⺻ȭ��ũ�⿡  
+
+	private int x_grid_unit = X_CELL_WHEN_60BPM;
 	private int beat_per_bar = 8;
-	private int time_grid = x_grid_unit*8;		// �ð� ǥ�ø� ���� grid ����.
-	private int start_index = 0;		// �ð� ǥ�ø� ���� grid ����.
-	private float wave_zoom = 0.0125f;			// �ּҰ�=�ִ������ = 0.001 ������ �� ��.==> �� 3��¥�� 1���� 1920 ��ü ȭ�鿡 �׸��� ����.
-												// default �� 0.01 �� ������ ������ ���δ�. = �����ھ�� ������ ���� ���ǿ� ���� ���Ⱑ �� ����.
+	private int time_grid = x_grid_unit*8;
+	private int start_index = 0;		
+	private float wave_zoom = 0.0125f;	
 
 	private byte[] wave_data;
+	private UkeData data = null;
 
+	
 	public WaveSynchPane() {
 		canvas_width = getWidth();
 		canvas_height = getHeight();
@@ -64,7 +65,6 @@ public class WaveSynchPane extends JPanel
 		gridFont = new Font("Monospaced", Font.BOLD, 9);
 		labelFont =  new Font("Tahoma", Font.PLAIN, 12);
 
-//		bg_color = new Color(240, 240, 240);
 		rulerColor = Color.LIGHT_GRAY;
 		rulerFontColor = Color.GRAY;
 		beatBgColor = new Color(220,220,220);
@@ -75,6 +75,11 @@ public class WaveSynchPane extends JPanel
 		chordAreaColor_H = new Color(240,250,180);
 		technicAreaColor = new Color(200,240,220);
 		technicAreaColor_H = new Color(200,250,230);  
+		data = null;
+
+		value_meter = "4/4";
+		value_quaver = 2;
+		value_bpm = 60.0f;
 	}
 
 	public void paintComponent(Graphics g) {
@@ -82,22 +87,16 @@ public class WaveSynchPane extends JPanel
 		canvas_height = getHeight();
 //		System.out.println("WaveSynchPane drawing...");
 
-		// ��� Ruler
 		drawRuler(g, X_OFFSET, 10, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
-		// �ϴ� Ruler
 		drawRuler(g, X_OFFSET, canvas_height-RULER_THICKNESS, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
 
 		int ypos = canvas_height-RULER_THICKNESS;
-		// ���ֱ��, Stroke ����, etc.. 
 		drawTechnicArea(g, X_OFFSET, ypos-TECHNIC_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, TECHNIC_AREA_THICKNESS );
 		ypos -= TECHNIC_AREA_THICKNESS;
-		// TAB �Ǻ� �׸��� 
 		drawTABArea(g, X_OFFSET, ypos-TAB_AREA_HEIGHT, canvas_width-X_OFFSET-X_PADDING, TAB_AREA_HEIGHT );
 		ypos -= TAB_AREA_HEIGHT;
-		// Chord Area
 		drawChordArea(g, X_OFFSET, ypos-CHORD_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, CHORD_AREA_THICKNESS);
 		ypos -= CHORD_AREA_THICKNESS;
-		// Lyric Area
 		drawLyricArea(g, X_OFFSET, ypos-LYRIC_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, LYRIC_AREA_THICKNESS);
 		ypos -= LYRIC_AREA_THICKNESS;
 
@@ -106,7 +105,7 @@ public class WaveSynchPane extends JPanel
 		g.dispose();
 	}
 
-	public void drawRuler(Graphics g, int x, int y, int w, int h) {
+	private void drawRuler(Graphics g, int x, int y, int w, int h) {
 		g.setColor(rulerColor);
 		g.fillRect( x, y, w, h );
 		for (int i=0; i<w; i+= x_grid_unit) {
@@ -121,7 +120,7 @@ public class WaveSynchPane extends JPanel
 		}
 	}
 	
-	public void drawWaveData(Graphics g, int x, int y, int w, int h) {
+	private void drawWaveData(Graphics g, int x, int y, int w, int h) {
 		String label="waveform:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -141,19 +140,10 @@ public class WaveSynchPane extends JPanel
 		int max_amplitude = h/2; 		// WINDOW SIZE�� ���� �ִ� ������ (pixel)
 
 		g.setColor(Color.GRAY);
-//		if (wave_data!=null) {
-//			for (int i=1; i<wave_data.length; i++) {
-//				if ( i >= w/wave_zoom )
-//					break;
-//				g.drawLine( (int)(i*wave_zoom+x-1), center_y+(wave_data[i-1]&0xFF)*max_amplitude/128, (int)(i*wave_zoom+x-1), center_y+(wave_data[i]&0xFF)*max_amplitude/128 );
-////				g.drawLine(x+i-1, center_y+((wave_data[44+i/4-1]&0xFF-128))*max_amplitude/128, x+i-1, center_y+((wave_data[44+i/4]&0xFF-128))*max_amplitude/128 );
-//			}
-//		}
 
 		if (wave_data!=null) {
 			int i, j, value, max, min, prev_min, xpos;
 			int num_per_px = (int)(1.0f/wave_zoom);		// 1�ȼ������� wave data�� ����
-//			System.out.println("num_per_px = "+num_per_px);
 			xpos = x;
 			i=start_index;		// start index of wave data
 			max=0;
@@ -178,7 +168,7 @@ public class WaveSynchPane extends JPanel
 		}
 	}
 
-	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
+	private void drawChordArea(Graphics g, int x, int y, int w, int h) {
 		System.out.println("x_grid_unit="+x_grid_unit+", value_bpm="+value_bpm );
 
 		String label="chord:";
@@ -198,7 +188,7 @@ public class WaveSynchPane extends JPanel
 
 	}
 
-	public void drawLyricArea(Graphics g, int x, int y, int w, int h) {
+	private void drawLyricArea(Graphics g, int x, int y, int w, int h) {
 		String label="lyric:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -216,7 +206,7 @@ public class WaveSynchPane extends JPanel
 
 	}
 	
-	public void drawTABArea(Graphics g, int x, int y, int w, int h) {
+	private void drawTABArea(Graphics g, int x, int y, int w, int h) {
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
 		g.drawString("G", x-16, y+16);
@@ -246,7 +236,7 @@ public class WaveSynchPane extends JPanel
 		}
 	}
 
-	public void drawTechnicArea(Graphics g, int x, int y, int w, int h) {
+	private void drawTechnicArea(Graphics g, int x, int y, int w, int h) {
 		String label="technic:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
@@ -264,36 +254,58 @@ public class WaveSynchPane extends JPanel
 
 	}
 
+	/**
+	 * *.wav 파일에서 읽어 온 오디오 데이터를 설정 - WAV 파형을 그릴 데이터를 지정.
+	 * @param data	*.wav에서 읽어 온 음성데이터 (8bit unsigned, mono 데이터만 가능함)
+	 */
 	public void setWaveData(byte[] data) {
 		System.out.println("WAVE DATA SET. : length=" + data.length);
 		wave_data = data;
 	}
 
+	/**
+	 * *.uke 파일에서 읽어 온 연주할 데이터를 설정 - TAB악보에 그릴 데이터를 지정함.
+	 * @param readData  UkeData 객체. - 기본정보 및 악보데이터 -
+	 */
+	public void setNoteData(UkeData readData) {
+		System.out.println("Note Data SET : length="+readData.getSize() );
+		data = readData;
+	}
+	
+	/**
+	 * 연주되는 음악의 BPM 값 설정.
+	 * @param bpm  - beat per minute. 1분당 4분음표의 갯수. meter(박자)정보와 함께 마디를 구분할 수 있도록 grid 를 표시하는데 사용됨.
+	 */
 	public void setBpm(float bpm) {
 		System.out.println("set BPM: " + bpm);
-		value_bpm = (int)bpm;
+		value_bpm = bpm;
 
-		
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16����ǥ ����.
-		x_grid_unit *= (value_beat!=0)?2:1;			// 8����ǥ �����̶�� 2�� ũ��� ��.
+		x_grid_unit = (int)((float)(X_CELL_WHEN_60BPM)*60/value_bpm);
+		x_grid_unit *= (value_quaver!=0)?2:1;
 
-		// 60bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� 48px,		60bpm��, 1/60���� ���� �ϹǷ�,   
-		// 80bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� ??px,  	80bpm�� 1/80���� �ؼ�,  1/60:48px = 1/80:??px  ??=48*60/80,  ��,  48*60/bpm ���� ���Ѵ�. 
 		repaint();
 	}
 
-	public void setQuaver(int isSemiQuaver) {	// 0=8����ǥ, 1=16����ǥ
-		System.out.println("set Quaver: " + isSemiQuaver);
-		value_beat = isSemiQuaver;
+	/**
+	 * 음악 파일의 기본 음표 크기 ( grid 1개 칸의 음표의 길이)
+	 * @param isSemiQuaver	기본음표 크기 (문자열로 지정: default='quaver', 16분음표='semi-quaver') 
+	 */
+	public void setQuaver(String quaver_mode) {	// 0=8����ǥ, 1=16����ǥ
+		System.out.println("set Quaver Mode: " + quaver_mode);
+		value_quaver = (quaver_mode=="quaver_mode") ? 2 : 4;
 
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16����ǥ ����.
-		x_grid_unit *= (value_beat!=0)?2:1;			// 8����ǥ �����̶�� 2�� ũ��� ��.
+		x_grid_unit = (int)((float)(X_CELL_WHEN_60BPM)*60/value_bpm);
+		x_grid_unit *= (value_quaver!=0)?2:1;			// 8����ǥ �����̶�� 2�� ũ��� ��.
 		repaint();
 	}
 
+	/** 
+	 * 음악파일의 박자 지정 (2/4, 3/4, 4/4, 6/8)
+	 * @param meter	박자 값 (문자열로 지정)
+	 */
 	public void setMeter(int meter) {	// '0'=2/4����, '1'=3/4����, '2'=4/4����, '3'=6/8����
-		value_meter = meter; 
-		switch(value_meter) {
+		value_meter = "2/4";
+		switch(meter) {
 			case 0:		// 2/4����
 				System.out.println("setMeter: 2/4����.." );
 				break;
@@ -308,7 +320,7 @@ public class WaveSynchPane extends JPanel
 				break;
 		}
 //		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16����ǥ ����.
-//		x_grid_unit *= (value_beat!=0)?2:1;			// 8����ǥ �����̶�� 2�� ũ��� ��.
+//		x_grid_unit *= (value_quaver!=0)?2:1;			// 8����ǥ �����̶�� 2�� ũ��� ��.
 		repaint();
 	}
 

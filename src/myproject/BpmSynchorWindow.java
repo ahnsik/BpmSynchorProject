@@ -28,12 +28,10 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.JFormattedTextField;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -45,6 +43,7 @@ public class BpmSynchorWindow {
 	private JTextField tfSongTitle;
 	private final ButtonGroup btngrpQuaver = new ButtonGroup();
 	private WaveSynchPane waveSynchPane;
+	private UkeData	data = null;
 
 	/**
 	 * Launch the application.
@@ -87,6 +86,22 @@ public class BpmSynchorWindow {
 		
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
+		btnOpenFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File f = showFileDialog();
+				if (f==null) {
+					System.out.println("File Not specified.");
+					return;
+				}
+				System.out.println("Selected UKE file:" + f.getPath());
+				System.out.println("-- getParent()" + f.getParent());
+				data = new UkeData();
+				data.loadFromFile(f);
+				if (waveSynchPane != null) {
+					waveSynchPane.setNoteData(data);
+				}
+			}
+		});
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -133,22 +148,22 @@ public class BpmSynchorWindow {
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnOpenFile)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnSetWave)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(btnSetAlbumImage)
-					.addPreferredGap(ComponentPlacement.RELATED, 348, Short.MAX_VALUE)
 					.addComponent(btnWriteFile)
+					.addPreferredGap(ComponentPlacement.RELATED, 533, Short.MAX_VALUE)
+					.addComponent(btnSetAlbumImage)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnSetWave)
 					.addContainerGap())
 		);
 		gl_panelFileManager.setVerticalGroup(
 			gl_panelFileManager.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panelFileManager.createParallelGroup(Alignment.BASELINE)
 					.addComponent(btnOpenFile)
-					.addComponent(btnNewFile))
+					.addComponent(btnNewFile)
+					.addComponent(btnWriteFile))
 				.addGroup(gl_panelFileManager.createParallelGroup(Alignment.BASELINE)
-					.addComponent(btnSetAlbumImage)
-					.addComponent(btnWriteFile)
-					.addComponent(btnSetWave))
+					.addComponent(btnSetWave)
+					.addComponent(btnSetAlbumImage))
 		);
 		panelFileManager.setLayout(gl_panelFileManager);
 		
@@ -236,8 +251,7 @@ public class BpmSynchorWindow {
 		JRadioButton rdbtnQuaver = new JRadioButton("quaver (\u266A 8\uBD84\uC74C\uD45C)");
 		rdbtnQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-//				JRadioButton btn=(JRadioButton)e.getSource();
-				waveSynchPane.setQuaver( 1 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( "quaver_mode" );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnQuaver);
@@ -245,7 +259,7 @@ public class BpmSynchorWindow {
 		JRadioButton rdbtnSemiQuaver = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
 		rdbtnSemiQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				waveSynchPane.setQuaver( 0 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( "semi_quaver_mode" );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnSemiQuaver);
@@ -297,10 +311,15 @@ public class BpmSynchorWindow {
 			e.printStackTrace();
 		}
 		
-		JLabel lblPlayingOffset = new JLabel("playing offset");
+		JLabel lblPlayingOffset = new JLabel("playing offset:");
 		
-		JFormattedTextField formattedTextField = new JFormattedTextField();
-		formattedTextField.setText("##:##.###");
+		JSpinner spnrStartOffset = new JSpinner();
+		
+		JLabel lblMsec = new JLabel("msec");
+		
+		JButton btnZoomIn = new JButton("Zoom In");
+		
+		JButton btnZoomOut = new JButton("Zoom Out");
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
 			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
@@ -316,30 +335,36 @@ public class BpmSynchorWindow {
 							.addGap(18)
 							.addComponent(lblJumpTo)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(lblPlayingOffset)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(formattedTextField, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE))
+							.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(lblSongTitle)
-								.addComponent(lblMeter, GroupLayout.DEFAULT_SIZE, 49, Short.MAX_VALUE)
+								.addComponent(lblBpm, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(lblSongTitle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 								.addComponent(lblBeats, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(rdbtnQuaver)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(rdbtnSemiQuaver))
-								.addComponent(tfSongTitle, GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
-								.addGroup(gl_panelValueSetting.createSequentialGroup()
-									.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addGap(18)
-									.addComponent(lblBpm, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
+									.addComponent(rdbtnSemiQuaver)
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)))
-							.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(lblMeter, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(tfSongTitle, GroupLayout.PREFERRED_SIZE, 494, GroupLayout.PREFERRED_SIZE)
+								.addGroup(gl_panelValueSetting.createSequentialGroup()
+									.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+									.addGap(18)
+									.addComponent(lblPlayingOffset)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(spnrStartOffset, GroupLayout.PREFERRED_SIZE, 58, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(lblMsec)
+									.addGap(18)
+									.addComponent(btnZoomIn)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(btnZoomOut)))
+							.addPreferredGap(ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
 									.addComponent(lblCategory)
@@ -367,7 +392,7 @@ public class BpmSynchorWindow {
 				.addGroup(gl_panelValueSetting.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
-						.addComponent(imgAlbumImage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+						.addComponent(imgAlbumImage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
 								.addComponent(lblSongTitle)
@@ -379,26 +404,29 @@ public class BpmSynchorWindow {
 								.addComponent(lblWaveFileName)
 								.addComponent(lblBeats)
 								.addComponent(rdbtnQuaver)
-								.addComponent(rdbtnSemiQuaver))
+								.addComponent(rdbtnSemiQuaver)
+								.addComponent(lblMeter)
+								.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 							.addPreferredGap(ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblMeter)
 								.addComponent(lblCategory)
 								.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblLevel)
 								.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblBpm)
-								.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblPlayingOffset)
+								.addComponent(spnrStartOffset, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblMsec)
+								.addComponent(btnZoomIn)
+								.addComponent(btnZoomOut))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
 								.addComponent(btnToStart)
 								.addComponent(btnPlay)
 								.addComponent(btnPause)
 								.addComponent(lblJumpTo)
-								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblPlayingOffset)
-								.addComponent(formattedTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
 					.addContainerGap())
 		);
 		panelValueSetting.setLayout(gl_panelValueSetting);
