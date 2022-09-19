@@ -98,7 +98,7 @@ public class UkeData {
 				mCommentary = "undefined";
 			}
 			// 음표 (연주데이터) 읽기.
-			JSONArray jsonNotes = (JSONArray)jsonObj.getJSONArray("comments");
+			JSONArray jsonNotes = (JSONArray)jsonObj.getJSONArray("notes");
 			numNotes = jsonNotes.length();
 			
 			if ( (jsonNotes != null) && (numNotes > 0) ) {
@@ -107,7 +107,7 @@ public class UkeData {
 				for (int i=0; i<numNotes; i++) {
 					JSONObject one = jsonNotes.getJSONObject(i);
 					notes[i] = new Note();
-					notes[i].timeStamp = one.getInt("timeStamp");
+					notes[i].timeStamp = one.getInt("timestamp");
 					notes[i].chordName = one.getString("chord");
 					try {
 						notes[i].technic = one.getString("technic");
@@ -123,12 +123,12 @@ public class UkeData {
 					JSONArray tabArray = (JSONArray)one.getJSONArray("tab");
 					notes[i].tab = new String[tabArray.length()];
 					for (j = tabArray.length()-1; j>=0; j--) {
-						notes[i].tab[j] = (String)tabArray.getString(i);
+						notes[i].tab[j] = (String)tabArray.getString(j);
 					}
 					JSONArray noteArray = (JSONArray)one.getJSONArray("note");
 					notes[i].note = new String[noteArray.length()];
 					for (j = noteArray .length()-1; j>= 0; j--) {
-						notes[i].note[j] = (String)noteArray.getString(i);
+						notes[i].note[j] = (String)noteArray.getString(j);
 					}
 				}
 			} else {

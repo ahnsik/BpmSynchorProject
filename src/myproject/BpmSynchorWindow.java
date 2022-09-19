@@ -1,6 +1,7 @@
 package myproject;
 
 import java.awt.EventQueue;
+import java.awt.Image;
 import java.text.ParseException;
 
 import javax.swing.JFrame;
@@ -84,6 +85,28 @@ public class BpmSynchorWindow {
 		panelFileManager.setBorder(new BevelBorder(BevelBorder.RAISED));
 		frmUkeBpmSynchronizer.getContentPane().add(panelFileManager, BorderLayout.NORTH);
 		
+		JLabel lblWaveFileName = new JLabel("Music file:");
+		final JLabel lblWaveFilePath = new JLabel("Use [Set WAVE] button.");
+
+		JLabel lblPlayingOffset = new JLabel("playing offset:");
+		final JSpinner spnrStartOffset = new JSpinner();
+		JLabel lblMsec = new JLabel("msec");
+
+		final JSpinner spnrBpm = new JSpinner();
+		spnrBpm.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
+				//				spnrBpm.getNumber();
+				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
+			}
+		});
+		spnrBpm.setModel(new SpinnerNumberModel(80.0f, 20.0f, 280.0f, 1.0f));
+
+		final JLabel imgAlbumImage = new JLabel("");
+		imgAlbumImage.setSize(128,128);		// setBounds(900, 100, 128, 72);
+		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
+		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
 		btnOpenFile.addActionListener(new ActionListener() {
@@ -100,6 +123,51 @@ public class BpmSynchorWindow {
 				if (waveSynchPane != null) {
 					waveSynchPane.setNoteData(data);
 				}
+				if (data.mMusicUrl != null ) {
+					System.out.println("\t>> file:"+data.mMusicUrl);
+					File mp3file = new File(f.getParent()+"/"+data.mMusicUrl);
+					lblWaveFilePath.setText(data.mMusicUrl);
+					
+					if (waveSynchPane != null) {
+//						saveWaveData(mp3file);
+					}
+				} else {
+					System.out.println("No music file specified.");
+					lblWaveFilePath.setText("");
+				}
+
+				if (data.mSongTitle != null ) {
+					tfSongTitle.setText(data.mSongTitle);
+				} else {
+					tfSongTitle.setText("");
+				}
+				if (data.mSongTitle != null ) {
+					tfSongTitle.setText(data.mSongTitle);
+				} else {
+					tfSongTitle.setText("");
+				}
+				
+				if (data.mThembnailUrl != null ) {
+//					ImageIcon scaledIcon = new ImageIcon(new ImageIcon(f.getParent()+"/"+data.mThembnailUrl).getImage().getScaledInstance(128,72, Image.SCALE_DEFAULT));
+					ImageIcon loadedIcon = new ImageIcon(f.getParent()+"/"+data.mThembnailUrl);
+					int w = loadedIcon.getIconWidth();
+					int h = loadedIcon.getIconHeight();
+					System.out.println("before resize : w="+w+", h="+h);
+					if (w>h) {
+						h = 128*h / w;	w = 128;
+					} else {
+						w = 128*w / h;	h = 128;	
+					}
+					System.out.println("After resize : w="+w+", h="+h);
+					ImageIcon scaledIcon = new ImageIcon(loadedIcon.getImage().getScaledInstance( w,h, Image.SCALE_DEFAULT));		// default size (w,h) = 128,72
+					imgAlbumImage.setIcon(scaledIcon);
+				} else {
+//					imgAlbumImage.setIcon(null);
+					imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png") );
+				}
+				
+				spnrStartOffset.setValue( Integer.valueOf(data.mStartOffset) );
+				spnrBpm.setValue( Float.valueOf(data.mBpm) );
 			}
 		});
 		JButton btnSetWave = new JButton("Set WAVE");
@@ -149,10 +217,10 @@ public class BpmSynchorWindow {
 					.addComponent(btnOpenFile)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(btnWriteFile)
-					.addPreferredGap(ComponentPlacement.RELATED, 533, Short.MAX_VALUE)
-					.addComponent(btnSetAlbumImage)
-					.addPreferredGap(ComponentPlacement.RELATED)
+					.addPreferredGap(ComponentPlacement.RELATED, 529, Short.MAX_VALUE)
 					.addComponent(btnSetWave)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(btnSetAlbumImage)
 					.addContainerGap())
 		);
 		gl_panelFileManager.setVerticalGroup(
@@ -162,8 +230,8 @@ public class BpmSynchorWindow {
 					.addComponent(btnNewFile)
 					.addComponent(btnWriteFile))
 				.addGroup(gl_panelFileManager.createParallelGroup(Alignment.BASELINE)
-					.addComponent(btnSetWave)
-					.addComponent(btnSetAlbumImage))
+					.addComponent(btnSetAlbumImage)
+					.addComponent(btnSetWave))
 		);
 		panelFileManager.setLayout(gl_panelFileManager);
 		
@@ -233,18 +301,6 @@ public class BpmSynchorWindow {
 		tfSongTitle = new JTextField();
 		tfSongTitle.setColumns(10);
 		
-		JLabel lblWaveFileName = new JLabel("WAVE File:");
-		
-		JLabel lblWaveFilePath = new JLabel("Use [Set WAVE] button.");
-		
-		JLabel lblAlbumImage = new JLabel("Album Image:");
-		lblAlbumImage.setHorizontalAlignment(SwingConstants.RIGHT);
-		
-		JLabel imgAlbumImage = new JLabel("");
-		imgAlbumImage.setSize(128,72);		// setBounds(900, 100, 128, 72);
-		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
-		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
-		
 		JLabel lblBeats = new JLabel("Beat:");
 		lblBeats.setHorizontalAlignment(SwingConstants.RIGHT);
 		
@@ -273,16 +329,6 @@ public class BpmSynchorWindow {
 		JLabel lblBpm = new JLabel("BPM:");
 		lblBpm.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		final JSpinner spnrBpm = new JSpinner();
-		spnrBpm.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
-				//				spnrBpm.getNumber();
-				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
-			}
-		});
-		spnrBpm.setModel(new SpinnerNumberModel(80.0f, 20.0f, 280.0f, 1.0f));
-		
 		JLabel lblCategory = new JLabel("Category:");
 		
 		JComboBox cbCategory = new JComboBox();
@@ -310,12 +356,6 @@ public class BpmSynchorWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		JLabel lblPlayingOffset = new JLabel("playing offset:");
-		
-		JSpinner spnrStartOffset = new JSpinner();
-		
-		JLabel lblMsec = new JLabel("msec");
 		
 		JButton btnZoomIn = new JButton("Zoom In");
 		
@@ -364,25 +404,24 @@ public class BpmSynchorWindow {
 									.addComponent(btnZoomIn)
 									.addPreferredGap(ComponentPlacement.RELATED)
 									.addComponent(btnZoomOut)))
-							.addPreferredGap(ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
-							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
+							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_panelValueSetting.createSequentialGroup()
-									.addComponent(lblCategory)
-									.addGap(4)
+									.addPreferredGap(ComponentPlacement.RELATED, 147, Short.MAX_VALUE)
 									.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
 										.addGroup(gl_panelValueSetting.createSequentialGroup()
-											.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-											.addGap(18)
+											.addComponent(lblCategory)
+											.addGap(4)
+											.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+										.addGroup(gl_panelValueSetting.createSequentialGroup()
 											.addComponent(lblLevel)
 											.addPreferredGap(ComponentPlacement.RELATED)
-											.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-											.addGap(3))
-										.addGroup(gl_panelValueSetting.createSequentialGroup()
-											.addComponent(lblWaveFileName)
-											.addPreferredGap(ComponentPlacement.RELATED)
-											.addComponent(lblWaveFilePath, GroupLayout.PREFERRED_SIZE, 168, GroupLayout.PREFERRED_SIZE))))
-								.addComponent(lblAlbumImage, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(ComponentPlacement.RELATED)
+											.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+								.addGroup(gl_panelValueSetting.createSequentialGroup()
+									.addGap(18)
+									.addComponent(lblWaveFileName)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(lblWaveFilePath, GroupLayout.DEFAULT_SIZE, 234, Short.MAX_VALUE)))
+							.addGap(9)
 							.addComponent(imgAlbumImage, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)))
 					.addGap(0))
@@ -392,16 +431,15 @@ public class BpmSynchorWindow {
 				.addGroup(gl_panelValueSetting.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.TRAILING)
-						.addComponent(imgAlbumImage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
+						.addComponent(imgAlbumImage, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 107, Short.MAX_VALUE)
 						.addGroup(gl_panelValueSetting.createSequentialGroup()
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
 								.addComponent(lblSongTitle)
-								.addComponent(lblAlbumImage)
-								.addComponent(tfSongTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(tfSongTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblWaveFileName)
+								.addComponent(lblWaveFilePath))
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblWaveFilePath)
-								.addComponent(lblWaveFileName)
 								.addComponent(lblBeats)
 								.addComponent(rdbtnQuaver)
 								.addComponent(rdbtnSemiQuaver)
@@ -409,8 +447,6 @@ public class BpmSynchorWindow {
 								.addComponent(cbMeter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 							.addPreferredGap(ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
 							.addGroup(gl_panelValueSetting.createParallelGroup(Alignment.BASELINE)
-								.addComponent(lblCategory)
-								.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblLevel)
 								.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblBpm)
@@ -426,7 +462,9 @@ public class BpmSynchorWindow {
 								.addComponent(btnPlay)
 								.addComponent(btnPause)
 								.addComponent(lblJumpTo)
-								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+								.addComponent(tfJumpToFormatted, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(cbCategory, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblCategory))))
 					.addContainerGap())
 		);
 		panelValueSetting.setLayout(gl_panelValueSetting);
