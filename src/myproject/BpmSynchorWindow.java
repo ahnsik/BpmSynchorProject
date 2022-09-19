@@ -264,10 +264,10 @@ public class BpmSynchorWindow {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
 				//				spnrBpm.getNumber();
-				waveSynchPane.setBpm( Integer.parseInt(""+spnrBpm.getValue()) );
+				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
 			}
 		});
-		spnrBpm.setModel(new SpinnerNumberModel(80, 20, 280, 1));
+		spnrBpm.setModel(new SpinnerNumberModel(80.0f, 20.0f, 280.0f, 1.0f));
 		
 		JLabel lblCategory = new JLabel("Category:");
 		
