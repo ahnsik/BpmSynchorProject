@@ -105,7 +105,8 @@ public class BpmSynchorWindow {
 		final JLabel imgAlbumImage = new JLabel("");
 		imgAlbumImage.setSize(128,128);		// setBounds(900, 100, 128, 72);
 		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
-		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+//		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+		setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
 
 		JButton btnNewFile = new JButton("New File");
 		JButton btnOpenFile = new JButton("Open File..");
@@ -148,22 +149,24 @@ public class BpmSynchorWindow {
 				}
 				
 				if (data.mThembnailUrl != null ) {
-//					ImageIcon scaledIcon = new ImageIcon(new ImageIcon(f.getParent()+"/"+data.mThembnailUrl).getImage().getScaledInstance(128,72, Image.SCALE_DEFAULT));
-					ImageIcon loadedIcon = new ImageIcon(f.getParent()+"/"+data.mThembnailUrl);
-					int w = loadedIcon.getIconWidth();
-					int h = loadedIcon.getIconHeight();
-					System.out.println("before resize : w="+w+", h="+h);
-					if (w>h) {
-						h = 128*h / w;	w = 128;
-					} else {
-						w = 128*w / h;	h = 128;	
-					}
-					System.out.println("After resize : w="+w+", h="+h);
-					ImageIcon scaledIcon = new ImageIcon(loadedIcon.getImage().getScaledInstance( w,h, Image.SCALE_DEFAULT));		// default size (w,h) = 128,72
-					imgAlbumImage.setIcon(scaledIcon);
+					setAlbumImage(imgAlbumImage, f.getParent()+"/"+data.mThembnailUrl );
+//					//					ImageIcon scaledIcon = new ImageIcon(new ImageIcon(f.getParent()+"/"+data.mThembnailUrl).getImage().getScaledInstance(128,72, Image.SCALE_DEFAULT));
+//					ImageIcon loadedIcon = new ImageIcon(f.getParent()+"/"+data.mThembnailUrl);
+//					int w = loadedIcon.getIconWidth();
+//					int h = loadedIcon.getIconHeight();
+//					System.out.println("before resize : w="+w+", h="+h);
+//					if (w>h) {
+//						h = 128*h / w;	w = 128;
+//					} else {
+//						w = 128*w / h;	h = 128;	
+//					}
+//					System.out.println("After resize : w="+w+", h="+h);
+//					ImageIcon scaledIcon = new ImageIcon(loadedIcon.getImage().getScaledInstance( w,h, Image.SCALE_DEFAULT));		// default size (w,h) = 128,72
+//					imgAlbumImage.setIcon(scaledIcon);
 				} else {
 //					imgAlbumImage.setIcon(null);
-					imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png") );
+//					imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png") );
+					setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
 				}
 				
 				spnrStartOffset.setValue( Integer.valueOf(data.mStartOffset) );
@@ -195,6 +198,10 @@ public class BpmSynchorWindow {
 					if (waveSynchPane != null) {
 						waveSynchPane.setWaveData(Buffer);
 					}
+
+					data.mMusicUrl = f.getName();
+					lblWaveFilePath.setText(data.mMusicUrl);
+					
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -206,6 +213,19 @@ public class BpmSynchorWindow {
 			}
 		});
 		JButton btnSetAlbumImage = new JButton("Set Album Image");
+		btnSetAlbumImage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File f = showFileDialog();
+				if (f==null) {
+					System.out.println("File Not specified.");
+					setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
+					return;
+				}
+				data.mThembnailUrl = f.getName();
+				System.out.println("PATH:" + f.getPath() + ", file name:" + f.getName() );
+				setAlbumImage(imgAlbumImage, f.getPath() );
+			}
+		});
 		JButton btnWriteFile = new JButton("WriteFile");
 		GroupLayout gl_panelFileManager = new GroupLayout(panelFileManager);
 		gl_panelFileManager.setHorizontalGroup(
@@ -357,7 +377,8 @@ public class BpmSynchorWindow {
 			e.printStackTrace();
 		}
 		
-		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+		setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png" );
+//		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
 
 		
 //		ImageIcon scaledIcon = new ImageIcon(new ImageIcon(f.getParent()+"/"+data.mThembnailUrl).getImage().getScaledInstance(128,72, Image.SCALE_DEFAULT));
@@ -509,4 +530,19 @@ public class BpmSynchorWindow {
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
+	
+	private void setAlbumImage(JLabel image, String filePath) {
+
+		ImageIcon loadedIcon = new ImageIcon( filePath );
+		int w = loadedIcon.getIconWidth();
+		int h = loadedIcon.getIconHeight();
+		if (w>h) {
+			h = 128*h / w;	w = 128;
+		} else {
+			w = 128*w / h;	h = 128;
+		}
+		ImageIcon scaledIcon = new ImageIcon(loadedIcon.getImage().getScaledInstance( w,h, Image.SCALE_DEFAULT));
+		image.setIcon(scaledIcon);
+	}
+
 }
