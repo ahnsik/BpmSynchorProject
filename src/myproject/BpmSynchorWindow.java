@@ -10,6 +10,7 @@ import java.awt.BorderLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
@@ -106,9 +107,27 @@ public class BpmSynchorWindow {
 		imgAlbumImage.setSize(128,128);		// setBounds(900, 100, 128, 72);
 		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
 //		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
-		setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
+		setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");				// "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"
 
 		JButton btnNewFile = new JButton("New File");
+		btnNewFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Preparing new Data");
+				if ( (data!=null) || (data.mMusicUrl!= null) || (data.mMusicUrl.length() > 0) ) {		// 데이터가 초기화 되어 있는 상태가 아니라면, ==> 이전에 어떤 데이터가 편집 중일 가능성 있음.  dialog 를 띄워서 확인할 것. 
+					int result = JOptionPane.showConfirmDialog(null, "편집중인 데이터는 모두 사라집니다. 저장하지 않고 새로 시작할까요 ?", "새로 만들기 확인", JOptionPane.OK_CANCEL_OPTION );
+					if (result == JOptionPane.CLOSED_OPTION) {
+						// dialog 창 취소 == 아무것도 안함.  
+					} else if (result == JOptionPane.OK_OPTION) {
+						initialize();
+					} else {
+						// NO 를 선택함 == 아무것도 안함. 
+					} 
+				} else {
+//					data = new UkeData();
+					initialize();
+				}
+			}
+		});
 		JButton btnOpenFile = new JButton("Open File..");
 		btnOpenFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -166,7 +185,7 @@ public class BpmSynchorWindow {
 				} else {
 //					imgAlbumImage.setIcon(null);
 //					imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png") );
-					setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
+					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");		// "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"
 				}
 				
 				spnrStartOffset.setValue( Integer.valueOf(data.mStartOffset) );
@@ -218,7 +237,9 @@ public class BpmSynchorWindow {
 				File f = showFileDialog();
 				if (f==null) {
 					System.out.println("File Not specified.");
-					setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
+//					setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png");
+					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");		// "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"
+					
 					return;
 				}
 				data.mThembnailUrl = f.getName();
@@ -377,15 +398,15 @@ public class BpmSynchorWindow {
 			e.printStackTrace();
 		}
 		
-		setAlbumImage(imgAlbumImage, "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png" );
+		setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png" );
 //		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
 
 		
 //		ImageIcon scaledIcon = new ImageIcon(new ImageIcon(f.getParent()+"/"+data.mThembnailUrl).getImage().getScaledInstance(128,72, Image.SCALE_DEFAULT));
 
-		ImageIcon ZoomInIcon = new ImageIcon( new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png") .getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT));
+		ImageIcon ZoomInIcon = new ImageIcon( new ImageIcon(".\\src\\resource\\zoom_in.png") .getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT));
 		JButton btnZoomIn = new JButton(ZoomInIcon);
-		ImageIcon ZoomOutIcon = new ImageIcon( new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png") .getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT));
+		ImageIcon ZoomOutIcon = new ImageIcon( new ImageIcon(".\\src\\resource\\zoom_out.png") .getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT));
 		JButton btnZoomOut = new JButton(ZoomOutIcon);
 
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
@@ -511,6 +532,8 @@ public class BpmSynchorWindow {
 					.addContainerGap())
 		);
 		panelValueSetting.setLayout(gl_panelValueSetting);
+
+		data = new UkeData();
 
 		waveSynchPane.setVisible(true);
 		waveSynchPane.setFocusable(true);
