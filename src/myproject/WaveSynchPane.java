@@ -19,6 +19,10 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 
+/**
+ *  WAVE 데이터를 draw 하고, 또한 편집할 수 있는 Pane 객체.
+ *  - 마우스 휠에 의해 확대/축소, 마우스 드래그에 의해 Scroll, 키 입력으로 데이터 입력 등...
+ */
 public class WaveSynchPane extends JPanel
 		implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
@@ -34,46 +38,70 @@ public class WaveSynchPane extends JPanel
 	private static final int CHORD_AREA_THICKNESS = FONT_HEIGHT;
 	private static final int LYRIC_AREA_THICKNESS = FONT_HEIGHT;
 
-	// 지울까 생각 중인 값 들.. 
-		private static final float DEFAULT_ZOOM_FACTOR = 0.002f;
-		private static final int X_CELL_WHEN_60BPM = 6;
-
-
+	/** drawing canvas 의 전체크기 */
 	private int canvas_width;
 	private int canvas_height;
 
-	/**		 */
-	private static Font gridFont, labelFont;	
+	/**	기본적으로 사용될 폰트 및 각종 색상들 배경색 포함 */
+	private static Font gridFont, labelFont, tabFont;	
 	private static Color bg_color, rulerColor, rulerFontColor, playedWaveFormColor, waveFormColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
 
-	private float samples_per_quaver;		// 8분음표 1개의 길이.
-	private float samples_per_pixel = 100.0f;		// 1픽셀당 audio sample 의 갯수. -->  마우스 휠에 의한 확대 축소 배율.
+	/** WAVE 파형을 그리는 데 사용될 기준 값들. WAVE 파형을 기준으로 삼아 msec 단위 (samples 갯수) 로 시간 계산을 하여 grid 크기를 결정한다.   
+	 * 	매우 중요한 변수samples_per_quaver, samples_per_pixel   
+	 */
+	private float	samples_per_quaver;			// 8분음표 1개의 길이 (sample 갯수 --> 시간계산에 매우 중요)
+	private int		samples_per_pixel;	// 1픽셀당 audio sample 의 갯수 --> 확대 축소 표시에 따라 달라질 것. WAVE 파형 그리는 것을 기준으로 시간계산에 유용하게 사용 됨.
 
-	private int value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
-	private int value_beat = 0;	//	'0' = quaver(8����ǥ), '1'=semi-quaver(16����ǥ) 
-	private int value_bpm = 80;	// beats per minute.
+	/** 아래의 4개 변수들은 값이 바뀌게 되면 grid 간격을 다시 계산해야 하므로, 항상 연동하여 변경되거나 계산되어야 한다. 
+	 *  따라서 반드시 private 로 선언하고 함수를 통해 값을 변경하며, 변경될 때 마다 관련 값들을 재계산 해 주어야 함.
+	 */ 
+	private String value_meter;		// = "4/4";	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
+	// 8분음표 기준인지, 16분음표 기준인지 ... <--  이거 없애고, TODO: 1 마디당 음표 갯수를 표시하는 다른 변수를 사용하도록 고칠 것.
+	private int value_beat = 0;	//	'0' = quaver(8분음표), '1'=semi-quaver(16분음표) 
+	// 연주할 음악의 Beat Per Munite 값. 값이 크면 빠르고 반응이 좋겠지만 어렵고, 값이 작으면 노래중 위치 찾기가 어렵다.
+	private float value_bpm = 80.0f;	// beats per minute.
+	// WAV파일 데이터의 녹음된 SampleRate ==>> 현재는 load 할 때 기본으로 8000Hz 로 변환해서 설정해 주고 있다. 나중엔 다양한 SampleRate 에 대응하도록 고려할 것.
 	private int sample_rate = 8000;
 
-	private int x_grid_unit = X_CELL_WHEN_60BPM;		// GRID 1ĭ�� pixel ũ��. -- depend on Zoom Size, Beats, BPM, etc...
-			// 60 bpm, quaver(8����ǥ), �⺻ȭ��ũ�⿡  
-	private WavPlay	player;
+	/** 
+	 * UKE 파일 편집에 유용하게 사용되는 변수들 
+	 */
+	// 박자(마디)에 따라 구분되는 색상. - 마디 첫 음은 별도의 색으로 구분해서 표시해 주어야 보기 쉽고 음표를 편집하기 좋다.
 	private int quaver_mode = 8;
-	private int maximum_start_index = x_grid_unit*8;		// �ð� ǥ�ø� ���� grid ����.
-	private int start_index = 0;		// �ð� ǥ�ø� ���� grid ����.
-	private int playing_position = 0;		// �ð� ǥ�ø� ���� grid ����.
+	// WAV 파형을 스크롤 해서 표시할 수 있는 end limit (현재는 default 로 1개 음으로 해 놓았는데...)
+	private int maximum_start_index = (int)samples_per_quaver*quaver_mode;
+	// 스크롤함에 다라 WAV파형을 draw 할 첫번째 sample 인덱스.
+	private int start_index = 0;
+	// 연주가 시작되고 나면, 현재까지 연주된 위치 == 앞으로 연주될 Sample의 index. (지금은 구현 안되어 있음)
+	private int playing_position = 0;
 
+	/**
+	 *  음악 파일의 WAVE 데이터
+	 */
 	private byte[] wave_data;
-//	private byte[] wave_60bpm, wave_61bpm, wave_62bpm, wave_63bpm;
-	private NoteData note_data = null;
+	// wav데이터를 연주할 플레이어. 
+	private WavPlay	player;
+			// BPM 설정을 확인해 보려고 하는 임시 Sample 들..
+			private byte[] wave_60bpm, wave_61bpm, wave_62bpm, wave_63bpm;
 
+	/**
+	 *  편집할 uke 데이터.  
+	 */
+	private UkeData uke_data = null;
+
+
+	/**
+	 * 생성자 - WAVE 데이터를 draw 하고, 또한 편집할 수 있는 Pane 객체.
+	 */
 	public WaveSynchPane() {
 		canvas_width = getWidth();
 		canvas_height = getHeight();
 
 		gridFont = new Font("Monospaced", Font.BOLD, 9);
 		labelFont =  new Font("Tahoma", Font.PLAIN, 12);
+		tabFont =  new Font("Tahoma", Font.BOLD, 12);
 
-		bg_color = new Color(240, 240, 240);
+		bg_color = new Color(232, 240, 248);
 		rulerColor = Color.LIGHT_GRAY;
 		rulerFontColor = Color.GRAY;
 		playedWaveFormColor = Color.LIGHT_GRAY;
@@ -86,7 +114,8 @@ public class WaveSynchPane extends JPanel
 		chordAreaColor_H = new Color(240,250,180);
 		technicAreaColor = new Color(200,240,220);
 		technicAreaColor_H = new Color(200,250,230);  
-/*
+
+		// 임시로, BPM 값이 정상으로 반영되어 동작하는지 확인하기 위한  임시 Sample 데이터들을 준비.
 		File file60bpm = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min_8000hz.wav");
 		ReadWaveData(file60bpm);
 		wave_60bpm = new byte[wave_data.length];
@@ -107,60 +136,65 @@ public class WaveSynchPane extends JPanel
 		wave_63bpm = new byte[wave_data.length];
 		System.arraycopy(wave_data, 0, wave_63bpm, 0, wave_data.length);
 		System.out.println("63bpm : " + wave_63bpm[0]);
-*/
+
 		// set variables to default values.
-		samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
-		value_meter = 3;	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
-		value_beat = 0;	//	'0' = quaver(8����ǥ), '1'=semi-quaver(16����ǥ) 
-		value_bpm = 80;	// beats per minute.
+		samples_per_pixel = 100;		// 마우스 휠 등에 의해 확대/축소되는 기준.  1픽셀 당 100개 sample로 표시.  8000Hz 샘플이므로, 1초=80 pixel 간격.
+		// 박자 값. string 으로 바꿔서 사용할 예정
+		value_meter = "4/4"; 
+		value_beat = 0;	//	나중에 삭제할 예정인 변수. 8분음표 기준인지, 16분음표 기준인지 판단용. 
+		// 본격 BPM 값 
+		value_bpm = 80.0f;	// beats per minute.
 		sample_rate = 8000;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 		playing_position = 0;
 	}
 
+	/**
+	 * *.wav파일로 부터 직접 읽어서 데이터를 준비함.	- 임시로 사용 ?? -  
+	 * @param f	 파일 핸들러 (*.wav 파일만 사용함)
+	 */
 	protected void ReadWaveData(File f) {
 		// TODO Auto-generated method stub
-		/*	-- WAV ������ ���.	*/
 		byte[] Header = new byte[44];
 		byte[] Buffer = new byte[(int)f.length()];
 
 		try {
 			FileInputStream is;
-
 			is = new FileInputStream( f );
 
 			int byteRead = -1;
 			byteRead = is.read(Header);			// *.wav���� ������� https://anythingcafe.tistory.com/2
-//			System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4����Ʈ ������ Header ũ��� �׸� ũ�� �����Ƿ�, ���� 2����Ʈ��. (little endian)
-//			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
-//			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
-//			System.out.println("byte rate =1�ʴ� byte ��:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
-//			System.out.println("num bits per Sample :"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
-//			System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
+			//System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4����Ʈ ������ Header ũ��� �׸� ũ�� �����Ƿ�, ���� 2����Ʈ��. (little endian)
+			//System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
+			//System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
+			//System.out.println("byte rate =1�ʴ� byte ��:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
+			//System.out.println("num bits per Sample :"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
+			//System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
 
 			byteRead = is.read(Buffer);
 			is.close();
 
-//			int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
-//			int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
-//			int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
+			//int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
+			//int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
+			//int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
 			int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1�� Sample �� byte ��. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
-			System.out.println("sample stripe = "+block_align );	
+			System.out.println("sample stripe = "+block_align );		// 16비트 Sampling, 또는 Stereo 녹음데이터 인 경우 등에 고려됨.  	
 
 			wave_data = new byte[byteRead];
-			for (int i=0; i<byteRead; i++) {
+			for (int i=0; i<byteRead; i++) {		// 지금은 임의로 무조건 8bit Mono, 8000Hz 가 아니면 안된다. 
 				wave_data[i] = Buffer[i];
 			}
 
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
 
+	/**
+	 * PANE 에 WAV 파형과, grid 및 UKE 데이터 정보를 Draw 함.
+	 */
 	public void paintComponent(Graphics g) {
 		canvas_width = getWidth();
 		canvas_height = getHeight();
@@ -168,7 +202,7 @@ public class WaveSynchPane extends JPanel
 		g.setColor(bg_color);
 		g.fillRect( 0, 0, canvas_width, canvas_height );
 
-		drawBGGrid(g, X_OFFSET, Y_PADDING, canvas_width-X_OFFSET-X_PADDING, canvas_height-Y_PADDING );
+		drawBGGrid(g, X_OFFSET, Y_PADDING, canvas_width-X_OFFSET-X_PADDING, canvas_height-Y_PADDING-Y_PADDING );
 
 		// ��� Ruler
 		drawRuler(g, X_OFFSET, Y_PADDING/2, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
@@ -195,18 +229,25 @@ public class WaveSynchPane extends JPanel
 		g.dispose();
 	}
 
-	
-	public void drawBGGrid(Graphics g, int x, int y, int w, int h) {
+	/**
+	 * 페인의 배경을 그림. grid 눈금도 그림.
+	 * @param g	
+	 * @param x
+	 * @param y
+	 * @param w
+	 * @param h
+	 */
+	private void drawBGGrid(Graphics g, int x, int y, int w, int h) {
 		g.setColor(rulerColor);
-		g.fillRect(x, y, w-1, RULER_THICKNESS);
-		g.fillRect(x, y+h-RULER_THICKNESS, w-1, RULER_THICKNESS);
+		g.fillRect(x, y, w-1, RULER_THICKNESS);						// 윗쪽 Ruler 배경
+		g.fillRect(x, y+h-RULER_THICKNESS, w-1, RULER_THICKNESS);	// 아랫쪽 Ruler 배경
 
-		int i, j;
-		boolean grid = false, quaver_grid = false;
-		
+		int i, j, start, end;
+		boolean grid = false, quaver_grid = false;		// grid : 눈금 경계인지 아닌지,  quaver_grid : 마디의 첫음인지 아닌지.
+
 		for (i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			start = ((samples_per_pixel*i)+start_index);
+//			end = start + samples_per_pixel;		// (int)((samples_per_pixel*(i+1))+start_index);
 			grid=false;
 			quaver_grid = false;
 //			for (j=start; j<end; j++) {
@@ -215,18 +256,19 @@ public class WaveSynchPane extends JPanel
 //				if ( (int)(j/samples_per_quaver)%quaver_mode == 0)
 //					quaver_grid = true;
 //			}
-			if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+
+			if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
 				grid=true;
 			}
-			if (((end/(int)samples_per_quaver)%quaver_mode)==0 ) {
+			if ( ((start/(int)samples_per_quaver)%quaver_mode) == 0 ) {
 				quaver_grid = true;
 			}
-			drawSingleLine(g, x+i, y, h, grid, quaver_grid);
+			drawSingleVerticalLine(g, x+i, y, h, grid, quaver_grid);
 		}
 
 	}
 
-	private void drawSingleLine(Graphics g, int x, int y, int h, boolean isGrid, boolean isQuaver) {
+	private void drawSingleVerticalLine(Graphics g, int x, int y, int h, boolean isGrid, boolean isQuaver) {
 		if (isGrid) {
 			// time_bar (ruler)
 			g.setColor(Color.DARK_GRAY);	// 눈금 색깔
@@ -333,42 +375,41 @@ public class WaveSynchPane extends JPanel
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
 
-		int i, j;
+		drawWave(g, x, y, w, h, wave_63bpm, Color.BLUE );
+		drawWave(g, x, y, w, h, wave_62bpm, Color.CYAN );
+		drawWave(g, x, y, w, h, wave_61bpm, Color.GREEN );
+		drawWave(g, x, y, w, h, wave_60bpm, Color.MAGENTA );
+		
+		//drawWave(g, x, y, w, h, wave_data, waveFormColor );
+	}
+
+	private void drawWave(Graphics g, int x, int y, int w, int h, byte[] data, Color c) {
+		g.setColor(c);
+		int j, value, max, min, prev_min, start, end ;
 		int center_y = y;
 		int max_amplitude = h/2;
-
-		//////////
-		int value, max, min, prev_min;
-
-		if (wave_data!=null) {
+		if (data!=null) {
 			max=0;
 			min=255;
-			for (i=0; i<w; i++) {
-				int start = (int)((samples_per_pixel*i)+start_index);
-				int end = (int)((samples_per_pixel*(i+1))+start_index);
-				if ( end < playing_position ) {
-					g.setColor(playedWaveFormColor);		// WaveForm Color.
-				} else {
-					g.setColor(waveFormColor);		// WaveForm Color.
-				}
-
-				if(end >= wave_data.length ) 
-					end = wave_data.length;
+			for (int i=0; i<w; i++) {
+				start = (int)((samples_per_pixel*i)+start_index);
+				end = start+(int)samples_per_pixel;
+				if(end >= data.length ) 
+					end = data.length;
 				prev_min = min;
 				max=0;
 				min=255;
 				for (j=start; j<end; j++) {
-					value = wave_data[j]&0xFF;
+					value = data[j]&0xFF;
 					max=(max<value)?value:max;
 					min=(min>value)?value:min;
 				}
 				g.drawLine( (x+i), center_y+ min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );
-				g.drawLine( (x+i), center_y+ prev_min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );				
+				g.drawLine( (x+i), center_y+ prev_min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );
 			}
 		}
-
 	}
-	
+
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
 
 		String label="chord:";
@@ -378,16 +419,16 @@ public class WaveSynchPane extends JPanel
 		g.drawString(label, x-strWidth, y+h/2);
 
 		int i, j;
-		if (note_data == null)
+		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
 			int start = (int)((samples_per_pixel*i)+start_index);
 			int end = (int)((samples_per_pixel*(i+1))+start_index);
 
-			for (j=0; j<note_data.notes.length; j++) {
-				if ( (note_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(note_data.notes[j].timeStamp*sample_rate/1000 < end)) {
+			for (j=0; j<uke_data.notes.length; j++) {
+				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
 					g.setColor(Color.BLACK);
-					g.drawString(note_data.notes[j].chordName, x+i, y+FONT_HEIGHT);
+					g.drawString(uke_data.notes[j].chordName, x+i, y+FONT_HEIGHT);
 				}
 			}
 		}
@@ -402,17 +443,17 @@ public class WaveSynchPane extends JPanel
 		g.drawString(label, x-strWidth, y+h/2);
 
 		int i, j;
-		if (note_data == null)
+		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
 			int start = (int)((samples_per_pixel*i)+start_index);
 			int end = (int)((samples_per_pixel*(i+1))+start_index);
 
-			for (j=0; j<note_data.notes.length; j++) {
-				if ( (note_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(note_data.notes[j].timeStamp*sample_rate/1000 < end)) {
+			for (j=0; j<uke_data.notes.length; j++) {
+				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
 					g.setColor(Color.BLACK);
-					g.drawString(note_data.notes[j].lyric, x+i, y+FONT_HEIGHT);
-//					System.out.println("TS:"+note_data.notes[j].timeStamp+"  "+note_data.notes[j].lyric );
+					g.drawString(uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT);
+//					System.out.println("TS:"+uke_data.notes[j].timeStamp+"  "+uke_data.notes[j].lyric );
 				}
 			}
 		}
@@ -492,17 +533,17 @@ public class WaveSynchPane extends JPanel
 //					g.setColor(technicAreaColor_H);
 //					g.setColor(technicAreaColor);
 		int i, j;
-		if (note_data == null)
+		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
 			int start = (int)((samples_per_pixel*i)+start_index);
 			int end = (int)((samples_per_pixel*(i+1))+start_index);
 
-			for (j=0; j<note_data.notes.length; j++) {
-				if ( (note_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(note_data.notes[j].timeStamp*sample_rate/1000 < end)) {
+			for (j=0; j<uke_data.notes.length; j++) {
+				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
 					g.setColor(Color.BLACK);
-					g.drawString(note_data.notes[j].technic, x+i, y+FONT_HEIGHT);
-//					System.out.println("TS:"+note_data.notes[j].timeStamp+"  "+note_data.notes[j].technic);
+					g.drawString(uke_data.notes[j].technic, x+i, y+FONT_HEIGHT);
+//					System.out.println("TS:"+uke_data.notes[j].timeStamp+"  "+uke_data.notes[j].technic);
 				}
 			}
 		}
@@ -514,9 +555,9 @@ public class WaveSynchPane extends JPanel
 		wave_data = data;
 	}
 
-	public void setNoteData(NoteData data) {
+	public void setNoteData(UkeData data) {
 		System.out.println("Note Data SET : length=" + data.getSize() );
-		note_data = data;
+		uke_data = data;
 	}
 	
 	public void setBpm(int bpm) {
@@ -524,9 +565,7 @@ public class WaveSynchPane extends JPanel
 		value_bpm = bpm;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16����ǥ ����.
-		x_grid_unit *= (value_beat!=0)?1:2;			// 8����ǥ �����̶�� 2�� ũ��� ��.
-		maximum_start_index = x_grid_unit*8;		// �ð� ǥ�ø� ���� grid ����.
+		maximum_start_index = (int)samples_per_quaver*quaver_mode;
 
 		// 60bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� 48px,		60bpm��, 1/60���� ���� �ϹǷ�,   
 		// 80bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� ??px,  	80bpm�� 1/80���� �ؼ�,  1/60:48px = 1/80:??px  ??=48*60/80,  ��,  48*60/bpm ���� ���Ѵ�. 
@@ -544,46 +583,46 @@ public class WaveSynchPane extends JPanel
 		}
 
 		switch(value_meter) {
-			case 0:		// 2/4����
+			case "2/4":		// 2/4박자
 				quaver_mode = (value_beat==0)?4:8;
 				break;
-			case 1:		// 3/4����
+			case "3/4":		// 3/4박자
+			case "6/8":		// 3/4박자
 				quaver_mode = (value_beat==0)?6:12;
 				break;
-			case 3:		// 6/8����
-				quaver_mode = (value_beat==0)?6:12;
-				break;
-			default:	// 4/4����
+			default:	// 기본은 4/4 박자.
 				quaver_mode = (value_beat==0)?8:16;
 				break;
 		}
 		
-		x_grid_unit = (X_CELL_WHEN_60BPM)*60/value_bpm; 	// 16����ǥ ����.
-		x_grid_unit *= (value_beat!=0)?1:2;			// 8����ǥ �����̶�� 2�� ũ��� ��.
-		maximum_start_index = x_grid_unit*8;		// �ð� ǥ�ø� ���� grid ����.
+		maximum_start_index = (int)samples_per_quaver*quaver_mode;
 		repaint();
 	}
 
 	public void setMeter(int meter) {	// '0'=2/4����, '1'=3/4����, '2'=4/4����, '3'=6/8����
-		value_meter = meter; 
-		switch(value_meter) {
-			case 0:		// 2/4����
-				System.out.println("setMeter: 2/4����.." );
+		switch(meter) {
+			case 0:		// 2/4박자
+				value_meter = "2/4";
+				System.out.println("setMeter: 2/4박자.." );
 				quaver_mode = (value_beat==0)?4:8;
 				break;
-			case 1:		// 3/4����
-				System.out.println("setMeter: 3/4����.." );
+			case 1:		// 3/4박자
+				value_meter = "3/4";
+				System.out.println("setMeter: 3/4박자.." );
 				quaver_mode = (value_beat==0)?6:12;
 				break;
-			case 3:		// 6/8����
-				System.out.println("setMeter: 6/8����.." );
+			case 3:		// 6/8박자
+				value_meter = "6/8";
+				System.out.println("setMeter: 6/8박자.." );
 				quaver_mode = (value_beat==0)?6:12;
 				break;
-			default:	// 4/4����
-				System.out.println("setMeter: 4/4����.." );
+			default:	// 4/4박자
+				value_meter = "4/4";
+				System.out.println("setMeter: 4/4박자.." );
 				quaver_mode = (value_beat==0)?8:16;
 				break;
 		}
+		maximum_start_index = (int)samples_per_quaver*quaver_mode;
 		repaint();
 	}
 
@@ -628,8 +667,7 @@ public class WaveSynchPane extends JPanel
 	public void mouseDragged(MouseEvent e) {
 		if (mousePt==null)
 			return;
-		int num_per_px = (int)(1.0f/DEFAULT_ZOOM_FACTOR);
-		start_index = prev_start_index - (e.getX()-mousePt.x)*num_per_px ;
+		start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
 		if (start_index < 0)
 			start_index = 0;
 		if (start_index >= wave_data.length-maximum_start_index)
@@ -639,8 +677,8 @@ public class WaveSynchPane extends JPanel
 	public void mouseMoved(MouseEvent e) {
 	}
 	public void mouseClicked(MouseEvent e) {
-		float samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
-		float samples_per_pixel = 100.0f;		// 24는 8분음표 1개에 해당하는 grid 크기.
+		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
+		samples_per_pixel = 100;		// 24는 8분음표 1개에 해당하는 grid 크기.
 		int x = e.getX()-X_OFFSET;
 		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );

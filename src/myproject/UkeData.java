@@ -9,7 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-public class NoteData {
+public class UkeData {
 
     public  String  version;          // NoteData 援ъ“�쓽 踰꾩쟾 - stroke �굹  hammering-on �벑�쓽 湲곕쾿�룄 �몴�떆�븷 �닔 �엳�룄濡� ��鍮꾪븳 援ъ“泥�
 
@@ -41,7 +41,7 @@ public class NoteData {
     public  int[]  score;        // time diff what with played.
 
 
-    public  NoteData() {
+    public  UkeData() {
         mMusicURL = null;
         mThumbnailURL = null;
         mSongTitle = null;
