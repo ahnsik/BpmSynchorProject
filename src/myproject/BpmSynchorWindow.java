@@ -1,6 +1,7 @@
 package myproject;
 
 import java.awt.EventQueue;
+import java.awt.Image;
 import java.text.ParseException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -8,13 +9,10 @@ import java.awt.BorderLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import javax.swing.JFileChooser;
 
@@ -42,9 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
@@ -53,6 +49,8 @@ import java.awt.SystemColor;
 
 public class BpmSynchorWindow {
 
+	private final static int	ICON_SIZE = 92;
+	
 	private JFrame frmUkeBpmSynchronizer;
 	private JTextField tfComment;
 	private JTextField tfSongTitle;
@@ -81,7 +79,7 @@ public class BpmSynchorWindow {
 	 * Create the application.
 	 */
 	public BpmSynchorWindow() {
-		initialize();
+		makeNew();
 	}
 
 	/**
@@ -99,11 +97,36 @@ public class BpmSynchorWindow {
 		waveSynchPane = new WaveSynchPane();
 		waveSynchPane.setBackground(UIManager.getColor("inactiveCaptionBorder"));
 
+		JLabel imgAlbumImage = new JLabel("");
+		imgAlbumImage.setBackground(SystemColor.inactiveCaptionBorder);
+		imgAlbumImage.setSize(ICON_SIZE, ICON_SIZE);		// setBounds(900, 100, 128, 72);
+		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
+		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+
 		JPanel panelFileManager = new JPanel();
 		panelFileManager.setBorder(new BevelBorder(BevelBorder.RAISED));
 		frmUkeBpmSynchronizer.getContentPane().add(panelFileManager, BorderLayout.NORTH);
 
 		JButton btnNewFile = new JButton("New File");
+		btnNewFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Preparing New uke DATA");
+				if (data != null) {
+					int result = JOptionPane.showConfirmDialog(null, "편집중인 데이터는 모두 사라집니다. 저장하지 않고 새로 시작할까요?", "새로만들기 확인", JOptionPane.OK_CANCEL_OPTION);
+					if (result == JOptionPane.CLOSED_OPTION) {
+						// Dialog 창을 그냥 취소한 경우. - 아무것도 안함.
+					} else if (result == JOptionPane.OK_OPTION) {
+						makeNew();
+						setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
+					} else {
+						// CANCEL 버튼인 경우 - 아무것도 안함.
+					}
+				} else {	// 원래 부터 null 인 상태.
+					makeNew();
+					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
+				}
+			}
+		});
 		JButton btnOpenFile = new JButton("Open File..");
 		btnOpenFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -162,7 +185,27 @@ public class BpmSynchorWindow {
 
 			}
 		});
+
 		JButton btnSetAlbumImage = new JButton("Set Album Image");
+		btnSetAlbumImage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File f = showFileDialog();
+				if (f==null) {
+					System.out.println("File not specified.");
+					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
+					return;
+				} else {
+					if (data != null) {
+						data.mThumbnailURL = f.getName();
+						System.out.println("PATH:"+f.getPath()+", fileName:"+f.getName() );
+						setAlbumImage(imgAlbumImage, f.getPath() );					
+					} else {
+						System.out.println("Uke Data Not READY !! you must make new Uke DATA !!" );
+//						makeNew();
+					}
+				}
+			}
+		});
 		JButton btnWriteFile = new JButton("WriteFile");
 		GroupLayout gl_panelFileManager = new GroupLayout(panelFileManager);
 		gl_panelFileManager.setHorizontalGroup(
@@ -262,12 +305,6 @@ public class BpmSynchorWindow {
 		
 		JLabel lblWaveFilePath = new JLabel("Use [Set WAVE] button to load wave file. music file name will be shown here.");
 		
-		JLabel imgAlbumImage = new JLabel("");
-		imgAlbumImage.setBackground(SystemColor.inactiveCaptionBorder);
-		imgAlbumImage.setSize(128,128);		// setBounds(900, 100, 128, 72);
-		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
-		imgAlbumImage.setIcon(new ImageIcon(".\\src\\resource\\ukulele_icon.png"));
-		
 		JLabel lblBeats = new JLabel("Beat:");
 		lblBeats.setHorizontalAlignment(SwingConstants.RIGHT);
 		
@@ -291,6 +328,7 @@ public class BpmSynchorWindow {
 		JLabel lblMeter = new JLabel("Meter:");
 		lblMeter.setHorizontalAlignment(SwingConstants.RIGHT);
 		
+		@SuppressWarnings("rawtypes")
 		JComboBox cbMeter = new JComboBox();
 		cbMeter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -495,7 +533,7 @@ public class BpmSynchorWindow {
 		waveSynchPane.addMouseMotionListener(waveSynchPane);
 		waveSynchPane.addKeyListener(waveSynchPane);		// KeyListener
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
-		
+
 	}
 
 	/*  refer : https://stackoverflow.com/questions/14085199/mp3-to-wav-conversion-in-java  */
@@ -593,7 +631,8 @@ public class BpmSynchorWindow {
 			is = new FileInputStream( f );
 			int byteRead = -1;
 			byteRead = is.read(Buffer);
-
+			is.close();
+			
 			byte[] WavBuffer = null;
 			try {
 				WavBuffer = getAudioDataBytes(Buffer, audioFormat );
@@ -725,4 +764,23 @@ public class BpmSynchorWindow {
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
+
+	private void makeNew() {
+		initialize();		// 기존에 data 객체가 존재한다면 여기에서 null 로 초기화 되므로 Garbage Collection 대상이 된다.
+		data = new UkeData();
+	}
+
+	private void setAlbumImage(JLabel imageLabel, String filePath ) {
+		ImageIcon loadedIcon = new ImageIcon( filePath );
+		int w = loadedIcon.getIconWidth();
+		int h = loadedIcon.getIconHeight();
+		if (w>h) {
+			h = ICON_SIZE *h / w;		w = ICON_SIZE ;
+		} else {
+			w = ICON_SIZE *w / h;		h = ICON_SIZE ;
+		}
+		ImageIcon scaledIcon = new ImageIcon(loadedIcon.getImage().getScaledInstance( w, h, Image.SCALE_DEFAULT));
+		imageLabel.setIcon(scaledIcon);
+	}
+
 }

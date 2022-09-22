@@ -242,7 +242,7 @@ public class WaveSynchPane extends JPanel
 		g.fillRect(x, y, w-1, RULER_THICKNESS);						// 윗쪽 Ruler 배경
 		g.fillRect(x, y+h-RULER_THICKNESS, w-1, RULER_THICKNESS);	// 아랫쪽 Ruler 배경
 
-		int i, j, start, end;
+		int i, start;		//, j, end;
 		boolean grid = false, quaver_grid = false;		// grid : 눈금 경계인지 아닌지,  quaver_grid : 마디의 첫음인지 아닌지.
 
 		for (i=0; i<w; i++) {
@@ -323,7 +323,7 @@ public class WaveSynchPane extends JPanel
 	
 
 	public void drawRuler(Graphics g, int x, int y, int w, int h) {
-		int i, j;
+		int i;
 		boolean grid;	
 
 		String time_string= "";
@@ -349,10 +349,6 @@ public class WaveSynchPane extends JPanel
 			time_msec = (start*1000/sample_rate);			
 
 			grid=false;
-//			for (j=start; j<end; j++) {
-//				if (j% (int)samples_per_quaver==0)
-//					grid=true;
-//			}
 			if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
 				grid=true;
 			}
@@ -467,28 +463,7 @@ public class WaveSynchPane extends JPanel
 		g.drawString("C", x-16, y+16+16);
 		g.drawString("E", x-16, y+16+32);
 		g.drawString("A", x-16, y+16+48);
-/*
-		for (int i=0; i<w; i++) {
-			int index = (int)( (((samples_per_pixel*i)+start_index)*value_bpm)/60);
-			if ( ( ((int)(index))%(samples_per_quaver)) != 0 ) {
-//					g.setColor(beatBgColor_H);
-//					g.setColor(beatBgColor);
-			}
-		}
 
-		g.setColor(Color.DARK_GRAY);
-		g.fillRect(x, y+9   , w-1, 2);		// G
-		g.fillRect(x, y+9+16, w-1, 2);		// C
-		g.fillRect(x, y+9+32, w-1, 2);		// E
-		g.fillRect(x, y+9+48, w-1, 2);		// A
-
-		for (int i=0; i<w; i++) {
-			int index = (int)( (((samples_per_pixel*i)+start_index)*value_bpm)/60);
-			if ( (index)%(quaver_mode*samples_per_quaver) == 0 ) {
-				g.fillRect(x+i-2, y+9, 2, 50);
-			}
-		}
-*/
 		int i, j;
 		boolean grid, quaver_grid;
 
