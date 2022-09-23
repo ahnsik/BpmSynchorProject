@@ -3,6 +3,11 @@ package myproject;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.text.ParseException;
+import java.util.InputMismatchException;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -46,15 +51,23 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.UIManager;
 import java.awt.SystemColor;
+import java.awt.event.InputMethodListener;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseWheelEvent;
 
 public class BpmSynchorWindow {
 
 	private final static int	ICON_SIZE = 92;
-	
+
+	private final ButtonGroup btngrpQuaver = new ButtonGroup();
+
 	private JFrame frmUkeBpmSynchronizer;
 	private JTextField tfComment;
 	private JTextField tfSongTitle;
-	private final ButtonGroup btngrpQuaver = new ButtonGroup();
+	private JLabel imgAlbumImage = new JLabel("");
+	private JSpinner spnrBpm = new JSpinner();
+
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
 	private UkeData data = null;
@@ -79,7 +92,8 @@ public class BpmSynchorWindow {
 	 * Create the application.
 	 */
 	public BpmSynchorWindow() {
-		makeNew();
+		initialize();		// 기존에 data 객체가 존재한다면 여기에서 null 로 초기화 되므로 Garbage Collection 대상이 된다.
+		makeNew();			// initalize 는 instance 생성 및 UI 객체 세팅하는 개념이고,  makeNew 함수는 값들을 초기화. 
 	}
 
 	/**
@@ -97,7 +111,7 @@ public class BpmSynchorWindow {
 		waveSynchPane = new WaveSynchPane();
 		waveSynchPane.setBackground(UIManager.getColor("inactiveCaptionBorder"));
 
-		JLabel imgAlbumImage = new JLabel("");
+		imgAlbumImage = new JLabel("");
 		imgAlbumImage.setBackground(SystemColor.inactiveCaptionBorder);
 		imgAlbumImage.setSize(ICON_SIZE, ICON_SIZE);		// setBounds(900, 100, 128, 72);
 		imgAlbumImage.setHorizontalAlignment(SwingConstants.CENTER);
@@ -117,16 +131,15 @@ public class BpmSynchorWindow {
 						// Dialog 창을 그냥 취소한 경우. - 아무것도 안함.
 					} else if (result == JOptionPane.OK_OPTION) {
 						makeNew();
-						setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
 					} else {
 						// CANCEL 버튼인 경우 - 아무것도 안함.
-					}
+				}
 				} else {	// 원래 부터 null 인 상태.
 					makeNew();
-					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
 				}
 			}
 		});
+
 		JButton btnOpenFile = new JButton("Open File..");
 		btnOpenFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -140,8 +153,9 @@ public class BpmSynchorWindow {
 
 				data = new UkeData();
 				data.loadFromFile(f);
+
 				if (waveSynchPane != null) {
-					waveSynchPane.setNoteData(data);
+					waveSynchPane.setUkeData(data);
 				}
 
 				if (data.mMusicURL != null) {
@@ -164,25 +178,21 @@ public class BpmSynchorWindow {
 			    } else {
 			    	System.out.println("No music scpecified.");
 			    }
-				tfSongTitle.setText(data.getSongTitle() );
-				tfComment.setText(data.getComment() );
 				player = null;
 
+				setStuffFromData(data);
 			}
 		});
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
 				File f = showFileDialog();
 				if (f==null) {
 					System.out.println("File Not specified.");
 					return;
 				}
-
 				System.out.println("Selected File:" + f.getPath() );
 				setWaveData(f); 
-
 			}
 		});
 
@@ -207,6 +217,7 @@ public class BpmSynchorWindow {
 			}
 		});
 		JButton btnWriteFile = new JButton("WriteFile");
+
 		GroupLayout gl_panelFileManager = new GroupLayout(panelFileManager);
 		gl_panelFileManager.setHorizontalGroup(
 			gl_panelFileManager.createParallelGroup(Alignment.LEADING)
@@ -354,7 +365,7 @@ public class BpmSynchorWindow {
 		JLabel lblBpm = new JLabel("BPM:");
 		lblBpm.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		final JSpinner spnrBpm = new JSpinner();
+		spnrBpm = new JSpinner();
 		spnrBpm.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
@@ -402,9 +413,50 @@ public class BpmSynchorWindow {
 			}
 		});
 		
-		JLabel lblJumpTo = new JLabel("Jump to");
-		
+		JLabel lblJumpTo = new JLabel("Jump to");		
 		JFormattedTextField tfJumpToFormatted = new JFormattedTextField();
+		tfJumpToFormatted.addMouseWheelListener(new MouseWheelListener() {
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				System.out.println("[tfJumpTo] mouseWheelMoved() called");
+			}
+		});
+		tfJumpToFormatted.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("[tfJumpTo] actionPerformed() called : " + tfJumpToFormatted.getText());
+				String jumpToMsecStr = tfJumpToFormatted.getText();
+				try {
+					int msec = Integer.parseInt(jumpToMsecStr);
+					System.out.println("Jump to " + msec + " milli-second");
+					waveSynchPane.setDrawStart( msec );
+				} catch (NumberFormatException e1) {
+//					System.err.println("not a milli-second. need to convert with Format.");
+					//Pattern p = Pattern.compile("\\d{2}:\\d{2}.\\d{3}"); 	// for Detail,  refer: https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html
+					//p.matcher(jumpToMsecStr).matches();
+
+					try (Scanner timeStr = new Scanner(jumpToMsecStr)) {
+						timeStr.useDelimiter(":");
+						int min = timeStr.nextInt();
+						int sec = timeStr.nextInt();
+						int msec = timeStr.nextInt();
+						System.out.println("min: "+ min + " minutes "+sec+" seconds "+msec+" milli-sec.");
+						msec = min*60000+sec*1000+msec;
+						waveSynchPane.setDrawStart( msec );
+
+					} catch (NoSuchElementException e3) {
+						int result = JOptionPane.showConfirmDialog(null, "이동위치를 다음과 같은 형식으로 입력해 주세요.\n MM : SS : msec", "입력형식 오류", JOptionPane.OK_OPTION);
+					}
+				}
+			}
+		});
+		tfJumpToFormatted.addInputMethodListener(new InputMethodListener() {
+			public void caretPositionChanged(InputMethodEvent event) {
+				System.out.println("[tfJumpTo] caretPositionChanged() called");
+			}
+			public void inputMethodTextChanged(InputMethodEvent event) {
+				System.out.println("[tfJumpTo] inputMethodTextChanged() called");
+//				waveSynchPane.setDrawStart( Integer.parseInt(""+spnrOffset.getValue()) );
+			}
+		});
 		tfJumpToFormatted.setText("##:##.###");
 		tfJumpToFormatted.setFocusLostBehavior(JFormattedTextField.COMMIT);
 		try {
@@ -413,14 +465,32 @@ public class BpmSynchorWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		JLabel lblPlayingOffset = new JLabel("playing offset");
-		
-		JSpinner spinner = new JSpinner();
-		
-		JButton btnZoomIn = new JButton("ZoomIn");
-		
-		JButton btnZoomOut = new JButton("Zoom out");
+		JSpinner spnrOffset = new JSpinner();
+		spnrOffset.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
+//				waveSynchPane.setDrawStart( Integer.parseInt(""+spnrOffset.getValue()) );
+			}
+		});
+
+		JButton btnZoomIn = new JButton("");
+		btnZoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				waveSynchPane.viewZoom(-1);		// 확대
+			}
+		});
+		btnZoomIn.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png" ).getImage().getScaledInstance( 20, 20, Image.SCALE_DEFAULT)) );
+
+		JButton btnZoomOut = new JButton("");
+		btnZoomOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				waveSynchPane.viewZoom(1);		// 축소
+			}
+		});
+		btnZoomOut.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png" ).getImage().getScaledInstance( 20, 20, Image.SCALE_DEFAULT)) );
+
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
 			gl_panelValueSetting.createParallelGroup(Alignment.LEADING)
@@ -452,7 +522,7 @@ public class BpmSynchorWindow {
 											.addPreferredGap(ComponentPlacement.UNRELATED)
 											.addComponent(lblPlayingOffset)
 											.addPreferredGap(ComponentPlacement.RELATED)
-											.addComponent(spinner, GroupLayout.PREFERRED_SIZE, 55, GroupLayout.PREFERRED_SIZE)
+											.addComponent(spnrOffset, GroupLayout.PREFERRED_SIZE, 55, GroupLayout.PREFERRED_SIZE)
 											.addGap(18)
 											.addComponent(lblLevel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 									.addPreferredGap(ComponentPlacement.RELATED)
@@ -506,7 +576,7 @@ public class BpmSynchorWindow {
 								.addComponent(lblBpm)
 								.addComponent(spnrBpm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblPlayingOffset)
-								.addComponent(spinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(spnrOffset, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblLevel)
 								.addComponent(cbLevel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -725,21 +795,21 @@ public class BpmSynchorWindow {
 			System.out.println("sample stripe = "+block_align );	
 
 			byte[] rawBuffer;
-			if (num_of_channel==1) {		// mono ä��
-				if (num_bits_of_sample ==8 ) {	// 8bit ����
+			if (num_of_channel==1) {
+				if (num_bits_of_sample ==8 ) {
 					waveSynchPane.setWaveData(Buffer);
-					frmUkeBpmSynchronizer.repaint();		// ���۸� �״�� �׳� �����ص� ��.
+					frmUkeBpmSynchronizer.repaint();
 					return;
-				} else {					// 16bit �����̸�, ���� 8��Ʈ�� ó��.
+				} else {		
 					rawBuffer = new byte[(byteRead/block_align)];
 					for (int i=0; i<byteRead-block_align; i+= block_align ) {
-						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
+						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);
 					}
 				}
-			} else {		// stereo ä�� �Ǵ� ��ä��.	// ������ ���⼭�� 16bit �������� �Ǵ��ؾ� ������, �׳� 8bit �� ��쿡�� 1����Ʈ ���غ� ���̹Ƿ� �׳� �Ѿ��.
+			} else {
 				rawBuffer = new byte[(byteRead/block_align)];
 				for (int i=0; i<byteRead-block_align; i+= block_align ) {
-					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
+					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);
 				}
 			}
 
@@ -766,8 +836,15 @@ public class BpmSynchorWindow {
 	}
 
 	private void makeNew() {
-		initialize();		// 기존에 data 객체가 존재한다면 여기에서 null 로 초기화 되므로 Garbage Collection 대상이 된다.
+		// 초기화 할 항목들 (중복 제거)
 		data = new UkeData();
+		player = null;
+		imgAlbumImage.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\ukulele_icon.png"));
+		setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
+
+		if (waveSynchPane != null) {
+			waveSynchPane.setUkeData(data);
+		}
 	}
 
 	private void setAlbumImage(JLabel imageLabel, String filePath ) {
@@ -783,4 +860,9 @@ public class BpmSynchorWindow {
 		imageLabel.setIcon(scaledIcon);
 	}
 
+	private void setStuffFromData(UkeData ukedata) {
+		tfSongTitle.setText(ukedata.getSongTitle() );
+		tfComment.setText(ukedata.getComment() );
+		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
+	}
 }

@@ -330,11 +330,11 @@ public class WaveSynchPane extends JPanel
 		int time_msec = 0, prev_t = 0;
 		int devider = 1000;
 		
-		if (samples_per_pixel <= 50.0f) {
+		if (samples_per_pixel <= 50) {
 			devider = 500;
-		} else if (samples_per_pixel <= 100.0f) {
+		} else if (samples_per_pixel <= 100) {
 			devider = 1000;
-		} else if (samples_per_pixel <= 200.0f) {
+		} else if (samples_per_pixel <= 200) {
 			devider = 2000;
 		} else {
 			devider = 4000;
@@ -343,8 +343,8 @@ public class WaveSynchPane extends JPanel
 		g.setFont(gridFont);
 		g.setColor(rulerFontColor);
 		for ( i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int start = ((samples_per_pixel*i)+start_index);
+			int end = ((samples_per_pixel*(i+1))+start_index);
 
 			time_msec = (start*1000/sample_rate);			
 
@@ -388,8 +388,8 @@ public class WaveSynchPane extends JPanel
 			max=0;
 			min=255;
 			for (int i=0; i<w; i++) {
-				start = (int)((samples_per_pixel*i)+start_index);
-				end = start+(int)samples_per_pixel;
+				start = ((samples_per_pixel*i)+start_index);
+				end = start+samples_per_pixel;
 				if(end >= data.length ) 
 					end = data.length;
 				prev_min = min;
@@ -404,6 +404,7 @@ public class WaveSynchPane extends JPanel
 				g.drawLine( (x+i), center_y+ prev_min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );
 			}
 		}
+
 	}
 
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
@@ -413,13 +414,13 @@ public class WaveSynchPane extends JPanel
 		g.setColor(Color.DARK_GRAY);
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
-
+/*
 		int i, j;
 		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int start = ((samples_per_pixel*i)+start_index);
+			int end = ((samples_per_pixel*(i+1))+start_index);
 
 			for (j=0; j<uke_data.notes.length; j++) {
 				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
@@ -428,7 +429,7 @@ public class WaveSynchPane extends JPanel
 				}
 			}
 		}
-
+*/
 	}
 
 	public void drawLyricArea(Graphics g, int x, int y, int w, int h) {
@@ -442,9 +443,12 @@ public class WaveSynchPane extends JPanel
 		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int start = ((samples_per_pixel*i)+start_index);
+			int end = ((samples_per_pixel*(i+1))+start_index);
 
+			if (uke_data.notes==null) {
+				continue;
+			}
 			for (j=0; j<uke_data.notes.length; j++) {
 				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
 					g.setColor(Color.BLACK);
@@ -474,8 +478,8 @@ public class WaveSynchPane extends JPanel
 		g.fillRect(x, y+9+48, w-1, 2);		// A
 
 		for (i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int start = ((samples_per_pixel*i)+start_index);
+			int end = ((samples_per_pixel*(i+1))+start_index);
 			grid=false;
 			quaver_grid = false;
 //			for (j=start; j<end; j++) {
@@ -504,15 +508,15 @@ public class WaveSynchPane extends JPanel
 		g.setColor(Color.DARK_GRAY);
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
-
+/*
 //					g.setColor(technicAreaColor_H);
 //					g.setColor(technicAreaColor);
 		int i, j;
 		if (uke_data == null)
 			return;
 		for (i=0; i<w; i++) {
-			int start = (int)((samples_per_pixel*i)+start_index);
-			int end = (int)((samples_per_pixel*(i+1))+start_index);
+			int start = ((samples_per_pixel*i)+start_index);
+			int end = ((samples_per_pixel*(i+1))+start_index);
 
 			for (j=0; j<uke_data.notes.length; j++) {
 				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
@@ -522,7 +526,7 @@ public class WaveSynchPane extends JPanel
 				}
 			}
 		}
-
+*/
 	}
 
 	public void setWaveData(byte[] data) {
@@ -530,7 +534,7 @@ public class WaveSynchPane extends JPanel
 		wave_data = data;
 	}
 
-	public void setNoteData(UkeData data) {
+	public void setUkeData(UkeData data) {
 		System.out.println("Note Data SET : length=" + data.getSize() );
 		uke_data = data;
 	}
@@ -608,6 +612,7 @@ public class WaveSynchPane extends JPanel
 	}
 	public void setDrawStart(int milisec) {
 		start_index = milisec;		// quaver 1�� ��ǥ�� �ʺ�(�ð�)�� milli-second ������ ������� �� ��. - Sampling ���ļ��� �������� ����ؾ� ��.
+		repaint();
 	}
 	public void setPlayingPosition(int milisec) {
 		playing_position = milisec;
@@ -623,16 +628,17 @@ public class WaveSynchPane extends JPanel
 		System.out.println("WaveSynchPane KeyReleased:" + e.getKeyCode() );
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
-//		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
-		if ( e.getWheelRotation() > 0) {	// Ȯ��
-			if (samples_per_pixel < 280.0f )
-				samples_per_pixel += 10.0f;
-		} else if ( e.getWheelRotation() < 0) {	// ���
-			if (samples_per_pixel > 10.0f )
-				samples_per_pixel -= 10.0f;
-		}
-
+		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
+//		if ( e.getWheelRotation() > 0) {
+//			if (samples_per_pixel < 280 )
+//				samples_per_pixel += 10;
+//		} else if ( e.getWheelRotation() < 0) {
+//			if (samples_per_pixel > 10 )
+//				samples_per_pixel -= 10;
+//		}
 //		System.out.println("samples_per_pixel = " + samples_per_pixel);
+
+		viewZoom( e.getWheelRotation() );
 		repaint();
 	}
 
@@ -673,6 +679,20 @@ public class WaveSynchPane extends JPanel
 	public void mouseEntered(MouseEvent e) {
 	}
 	public void mouseExited(MouseEvent e) {
+	}
+
+////////////	
+	public void viewZoom(int zoom_factor) {
+//		System.out.println("Mouse Wheel listener:" + zoom_factor + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
+		if ( zoom_factor > 0) {
+			if (samples_per_pixel < 280 )
+				samples_per_pixel += 10;
+		} else if ( zoom_factor < 0) {
+			if (samples_per_pixel > 10 )
+				samples_per_pixel -= 10;
+		}
+//		System.out.println("samples_per_pixel = " + samples_per_pixel);
+		repaint();
 	}
 
 }
