@@ -41,6 +41,7 @@ public class WaveSynchPane extends JPanel
 	/** drawing canvas 의 전체크기 */
 	private int canvas_width;
 	private int canvas_height;
+	private int lyricStart_y, chordStart_y, tabStart_y, technicStart_y;
 
 	/**	기본적으로 사용될 폰트 및 각종 색상들 배경색 포함 */
 	private static Font gridFont, labelFont, tabFont;	
@@ -82,7 +83,7 @@ public class WaveSynchPane extends JPanel
 	// wav데이터를 연주할 플레이어. 
 	private WavPlay	player;
 			// BPM 설정을 확인해 보려고 하는 임시 Sample 들..
-			private byte[] wave_60bpm, wave_61bpm, wave_62bpm, wave_63bpm;
+			//private byte[] wave_60bpm, wave_61bpm, wave_62bpm, wave_63bpm;
 
 	/**
 	 *  편집할 uke 데이터.  
@@ -114,7 +115,7 @@ public class WaveSynchPane extends JPanel
 		chordAreaColor_H = new Color(240,250,180);
 		technicAreaColor = new Color(200,240,220);
 		technicAreaColor_H = new Color(200,250,230);  
-
+/*
 		// 임시로, BPM 값이 정상으로 반영되어 동작하는지 확인하기 위한  임시 Sample 데이터들을 준비.
 		File file60bpm = new File("C:\\Users\\\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\60BPM_Drum_Beat_3min_8000hz.wav");
 		ReadWaveData(file60bpm);
@@ -136,7 +137,7 @@ public class WaveSynchPane extends JPanel
 		wave_63bpm = new byte[wave_data.length];
 		System.arraycopy(wave_data, 0, wave_63bpm, 0, wave_data.length);
 		System.out.println("63bpm : " + wave_63bpm[0]);
-
+*/
 		// set variables to default values.
 		samples_per_pixel = 100;		// 마우스 휠 등에 의해 확대/축소되는 기준.  1픽셀 당 100개 sample로 표시.  8000Hz 샘플이므로, 1초=80 pixel 간격.
 		// 박자 값. string 으로 바꿔서 사용할 예정
@@ -211,16 +212,20 @@ public class WaveSynchPane extends JPanel
 
 		int ypos = canvas_height-RULER_THICKNESS;
 		// ���ֱ��, Stroke ����, etc.. 
-		drawTechnicArea(g, X_OFFSET, ypos-TECHNIC_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, TECHNIC_AREA_THICKNESS );
+		technicStart_y = ypos-TECHNIC_AREA_THICKNESS;
+		drawTechnicArea(g, X_OFFSET, technicStart_y, canvas_width-X_OFFSET-X_PADDING, TECHNIC_AREA_THICKNESS );
 		ypos -= TECHNIC_AREA_THICKNESS;
 		// TAB �Ǻ� �׸��� -
-		drawTABArea(g, X_OFFSET, ypos-TAB_AREA_HEIGHT, canvas_width-X_OFFSET-X_PADDING, TAB_AREA_HEIGHT );
+		tabStart_y = ypos-TAB_AREA_HEIGHT;
+		drawTABArea(g, X_OFFSET, tabStart_y, canvas_width-X_OFFSET-X_PADDING, TAB_AREA_HEIGHT );
 		ypos -= TAB_AREA_HEIGHT;
 		// Chord Area
-		drawChordArea(g, X_OFFSET, ypos-CHORD_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, CHORD_AREA_THICKNESS);
+		chordStart_y = ypos-CHORD_AREA_THICKNESS;
+		drawChordArea(g, X_OFFSET, chordStart_y, canvas_width-X_OFFSET-X_PADDING, CHORD_AREA_THICKNESS);
 		ypos -= CHORD_AREA_THICKNESS;
 		// Lyric Area
-		drawLyricArea(g, X_OFFSET, ypos-LYRIC_AREA_THICKNESS, canvas_width-X_OFFSET-X_PADDING, LYRIC_AREA_THICKNESS);
+		lyricStart_y = ypos-LYRIC_AREA_THICKNESS;
+		drawLyricArea(g, X_OFFSET, lyricStart_y, canvas_width-X_OFFSET-X_PADDING, LYRIC_AREA_THICKNESS);
 		ypos -= LYRIC_AREA_THICKNESS;
 
 		// WAVEFORM draw
@@ -371,12 +376,12 @@ public class WaveSynchPane extends JPanel
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
 
-		drawWave(g, x, y, w, h, wave_63bpm, Color.BLUE );
-		drawWave(g, x, y, w, h, wave_62bpm, Color.CYAN );
-		drawWave(g, x, y, w, h, wave_61bpm, Color.GREEN );
-		drawWave(g, x, y, w, h, wave_60bpm, Color.MAGENTA );
+//		drawWave(g, x, y, w, h, wave_63bpm, Color.BLUE );
+//		drawWave(g, x, y, w, h, wave_62bpm, Color.CYAN );
+//		drawWave(g, x, y, w, h, wave_61bpm, Color.GREEN );
+//		drawWave(g, x, y, w, h, wave_60bpm, Color.MAGENTA );
 		
-		//drawWave(g, x, y, w, h, wave_data, waveFormColor );
+		drawWave(g, x, y, w, h, wave_data, waveFormColor );
 	}
 
 	private void drawWave(Graphics g, int x, int y, int w, int h, byte[] data, Color c) {
@@ -539,19 +544,15 @@ public class WaveSynchPane extends JPanel
 		uke_data = data;
 	}
 	
-	public void setBpm(int bpm) {
+	public void setBpm(float bpm) {
 		System.out.println("set BPM: " + bpm);
 		value_bpm = bpm;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
-
 		maximum_start_index = (int)samples_per_quaver*quaver_mode;
-
-		// 60bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� 48px,		60bpm��, 1/60���� ���� �ϹǷ�,   
-		// 80bpm 4/4���� 1�� = 48*8 = 384px ==> 1beat �� ??px,  	80bpm�� 1/80���� �ؼ�,  1/60:48px = 1/80:??px  ??=48*60/80,  ��,  48*60/bpm ���� ���Ѵ�. 
 		repaint();
 	}
 
-	public void setQuaver(int isSemiQuaver) {	// 0=8����ǥ, 1=16����ǥ
+	public void setQuaver(int isSemiQuaver) {
 		System.out.println("set Quaver: " + isSemiQuaver);
 		value_beat = isSemiQuaver;
 
@@ -664,9 +665,20 @@ public class WaveSynchPane extends JPanel
 		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );
 
-		int start = (int)((samples_per_pixel*x)+start_index);
-		int xs = (int)((float)start/samples_per_quaver);
-		System.out.println("start="+start+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
+		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
+			System.err.println("lyric display Area Clicked. !!!" );
+		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
+			System.err.println("chord display Area Clicked. !!!" );
+		} else if ( (y>tabStart_y)&&(y<=(tabStart_y+TAB_AREA_HEIGHT)) ) {
+			System.err.println("TAB edit Area Clicked. !!!" );
+		} else if ( (y>technicStart_y)&&(y<=(technicStart_y+TECHNIC_AREA_THICKNESS)) ) {
+			System.err.println("technic edit Area Clicked. !!!" );
+		} else {
+			int start = (int)((samples_per_pixel*x)+start_index);
+			int xs = (int)((float)start/samples_per_quaver);
+			System.out.println("start="+start+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
+		}
+		
 	}
 
 	public void mousePressed(MouseEvent e) {

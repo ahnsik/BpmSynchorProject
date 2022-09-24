@@ -65,8 +65,9 @@ public class BpmSynchorWindow {
 	private JFrame frmUkeBpmSynchronizer;
 	private JTextField tfComment;
 	private JTextField tfSongTitle;
-	private JLabel imgAlbumImage = new JLabel("");
-	private JSpinner spnrBpm = new JSpinner();
+	private JLabel imgAlbumImage;
+	private JSpinner spnrBpm;
+	private JSpinner spnrOffset = new JSpinner();
 
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
@@ -163,17 +164,17 @@ public class BpmSynchorWindow {
 					System.out.println("\t>> File:"+data.mMusicURL );
 					File mp3file =  new File(f.getParent()+"/"+data.mMusicURL);
 
-			    	player = new WavPlay(mp3file);
+//			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
-						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
-						player.setView(waveSynchPane);
-						waveSynchPane.setPlayer(player);
+//						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
+//						player.setView(waveSynchPane);
+//						waveSynchPane.setPlayer(player);
 						setWaveData(mp3file); 
 					}
 
 					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
 			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
-			    	player = new WavPlay(mp3file);
+//			    	player = new WavPlay(mp3file);
 			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {
 			    	System.out.println("No music scpecified.");
@@ -251,7 +252,7 @@ public class BpmSynchorWindow {
 		frmUkeBpmSynchronizer.getContentPane().add(panelStatusBar, BorderLayout.SOUTH);
 		
 		JLabel lblStatus = new JLabel("Status...");
-		
+
 		JLabel lblStatusCurrentSetting = new JLabel("Current setting...");
 		lblStatusCurrentSetting.setHorizontalAlignment(SwingConstants.RIGHT);
 		GroupLayout gl_panelStatusBar = new GroupLayout(panelStatusBar);
@@ -370,10 +371,10 @@ public class BpmSynchorWindow {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
 				//				spnrBpm.getNumber();
-				waveSynchPane.setBpm( Integer.parseInt(""+spnrBpm.getValue()) );
+				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
 			}
 		});
-		spnrBpm.setModel(new SpinnerNumberModel(60, 20, 280, 1));
+		spnrBpm.setModel(new SpinnerNumberModel(60.0f, 20.0f, 280.0f, 1.0f));
 		
 		JLabel lblCategory = new JLabel("Category:");
 		
@@ -457,7 +458,7 @@ public class BpmSynchorWindow {
 //				waveSynchPane.setDrawStart( Integer.parseInt(""+spnrOffset.getValue()) );
 			}
 		});
-		tfJumpToFormatted.setText("##:##.###");
+		tfJumpToFormatted.setText("00:00:000");
 		tfJumpToFormatted.setFocusLostBehavior(JFormattedTextField.COMMIT);
 		try {
 			MaskFormatter  formatter1 = new MaskFormatter("##:##.###");
@@ -466,7 +467,7 @@ public class BpmSynchorWindow {
 			e.printStackTrace();
 		}
 
-		JLabel lblPlayingOffset = new JLabel("playing offset");
+		JLabel lblPlayingOffset = new JLabel("WAV offset");
 		JSpinner spnrOffset = new JSpinner();
 		spnrOffset.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
@@ -753,24 +754,21 @@ public class BpmSynchorWindow {
 	}
 
 	protected void setWaveData(File f) {
-		// TODO Auto-generated method stub
-		/*	-- WAV ������ ���.	*/
 		byte[] Header = new byte[44];
 		byte[] Buffer = new byte[(int)f.length()];
 
 		try {
 			FileInputStream is;
-
 			is = new FileInputStream( f );
 
 			int byteRead = -1;
 			byteRead = is.read(Header);			// *.wav���� ������� https://anythingcafe.tistory.com/2
-			System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4����Ʈ ������ Header ũ��� �׸� ũ�� �����Ƿ�, ���� 2����Ʈ��. (little endian)
-			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
-			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
-			System.out.println("byte rate =1�ʴ� byte ��:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
-			System.out.println("num bits per Sample :"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
-			System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
+//			System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4����Ʈ ������ Header ũ��� �׸� ũ�� �����Ƿ�, ���� 2����Ʈ��. (little endian)
+//			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
+//			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
+//			System.out.println("byte rate =1�ʴ� byte ��:"+( ((Header[31]&0xFF)<<24)+((Header[30]&0xFF)<<16)+((Header[29]&0xFF)<<8)+(Header[28]&0xFF)) );	
+//			System.out.println("num bits per Sample :"+( ((Header[35]&0xFF)<<8)+(Header[34]&0xFF)) );	
+//			System.out.println("Block Align:"+( ((Header[33]&0xFF)<<8)+(Header[32]&0xFF)) );		// 	
 
 			byteRead = is.read(Buffer);
 			is.close();
@@ -780,11 +778,11 @@ public class BpmSynchorWindow {
 				player.interrupt();
 				player = null;
 			}
-			player = new WavPlay(Header, Buffer);
-			if (waveSynchPane != null) {
-				player.setView(waveSynchPane);
-				waveSynchPane.setPlayer(player);
-			}
+//			player = new WavPlay(Header, Buffer);
+//			if (waveSynchPane != null) {
+//				player.setView(waveSynchPane);
+//				waveSynchPane.setPlayer(player);
+//			}
 //			player.play();
 //			player.start();
 
@@ -864,5 +862,6 @@ public class BpmSynchorWindow {
 		tfSongTitle.setText(ukedata.getSongTitle() );
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
+		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
 	}
 }
