@@ -459,9 +459,9 @@ public class WaveSynchPane extends JPanel
 					int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
 					for (j=0; j<uke_data.notes.length; j++) {
 						int timeStamp = (int) uke_data.notes[j].timeStamp;
-						System.out.println(  "grid_msec:"+start_msec+"~"+end_msec + ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
+//						System.out.println(  "grid_msec:"+start_msec+"~"+end_msec + ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
 						if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
-							System.out.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
+							//System.out.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
 							g.drawRect( x+i, y, 12, FONT_HEIGHT );
 							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
 						}

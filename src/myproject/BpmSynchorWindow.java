@@ -184,6 +184,8 @@ public class BpmSynchorWindow implements KeyListener {
 			    }
 				player = null;
 
+				lblWaveFilePath.setText(data.mMusicUrl);
+				setAlbumImage(imgAlbumImage, f.getParent()+"/"+data.mThumbnailUrl );
 				setStuffFromData(data);
 			}
 		});
@@ -860,7 +862,6 @@ public class BpmSynchorWindow implements KeyListener {
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
 		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
-		lblWaveFilePath.setText(ukedata.mMusicUrl);
 	}
 
 	@Override
