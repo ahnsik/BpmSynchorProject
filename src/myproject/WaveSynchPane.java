@@ -536,16 +536,28 @@ public class WaveSynchPane extends JPanel
 */
 	}
 
+	/**
+	 * *.wav 파일에서 읽어 온 오디오 데이터를 설정 - WAV 파형을 그릴 데이터를 지정.
+	 * @param data	*.wav에서 읽어 온 음성데이터 (8bit unsigned, mono 데이터만 가능함)
+	 */
 	public void setWaveData(byte[] data) {
 		System.out.println("WAVE DATA SET. : length=" + data.length);
 		wave_data = data;
 	}
 
+	/**
+	 * *.uke 파일에서 읽어 온 연주할 데이터를 설정 - TAB악보에 그릴 데이터를 지정함.
+	 * @param readData  UkeData 객체. - 기본정보 및 악보데이터 -
+	 */
 	public void setUkeData(UkeData data) {
 		System.out.println("Note Data SET : length=" + data.getSize() );
 		uke_data = data;
 	}
 	
+	/**
+	 * 연주되는 음악의 BPM 값 설정.
+	 * @param bpm  - beat per minute. 1분당 4분음표의 갯수. meter(박자)정보와 함께 마디를 구분할 수 있도록 grid 를 표시하는데 사용됨.
+	 */
 	public void setBpm(float bpm) {
 		System.out.println("set BPM: " + bpm);
 		value_bpm = bpm;
@@ -554,6 +566,10 @@ public class WaveSynchPane extends JPanel
 		repaint();
 	}
 
+	/**
+	 * 음악 파일의 기본 음표 크기 ( grid 1개 칸의 음표의 길이)
+	 * @param isSemiQuaver	기본음표 크기 (문자열로 지정: default='quaver', 16분음표='semi-quaver') 
+	 */
 	public void setQuaver(int isSemiQuaver) {
 		System.out.println("set Quaver: " + isSemiQuaver);
 		value_beat = isSemiQuaver;
@@ -581,6 +597,10 @@ public class WaveSynchPane extends JPanel
 		repaint();
 	}
 
+	/** 
+	 * 음악파일의 박자 지정 (2/4, 3/4, 4/4, 6/8)
+	 * @param meter	박자 값 (문자열로 지정)
+	 */
 	public void setMeter(int meter) {	// '0'=2/4����, '1'=3/4����, '2'=4/4����, '3'=6/8����
 		switch(meter) {
 			case 0:		// 2/4박자

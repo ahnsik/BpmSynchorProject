@@ -161,10 +161,10 @@ public class BpmSynchorWindow implements KeyListener {
 					waveSynchPane.setUkeData(data);
 				}
 
-				if (data.mMusicURL != null) {
+				if (data.mMusicUrl != null) {
 //					File mp3file =  new File("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
-					System.out.println("\t>> File:"+data.mMusicURL );
-					File mp3file =  new File(f.getParent()+"/"+data.mMusicURL);
+					System.out.println("\t>> File:"+data.mMusicUrl );
+					File mp3file =  new File(f.getParent()+"/"+data.mMusicUrl);
 
 //			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
@@ -175,7 +175,7 @@ public class BpmSynchorWindow implements KeyListener {
 					}
 
 					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
-			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicURL );			// new File(f.getParent(), data.mMusicURL) );
+			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicUrl );			// new File(f.getParent(), data.mMusicURL) );
 //			    	player = new WavPlay(mp3file);
 			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {
@@ -209,7 +209,7 @@ public class BpmSynchorWindow implements KeyListener {
 					return;
 				} else {
 					if (data != null) {
-						data.mThumbnailURL = f.getName();
+						data.mThumbnailUrl = f.getName();
 						System.out.println("PATH:"+f.getPath()+", fileName:"+f.getName() );
 						setAlbumImage(imgAlbumImage, f.getPath() );					
 					} else {
