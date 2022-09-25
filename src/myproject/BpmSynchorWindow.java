@@ -68,6 +68,7 @@ public class BpmSynchorWindow implements KeyListener {
 	private JTextField tfComment;
 	private JTextField tfSongTitle;
 	private JLabel imgAlbumImage;
+	private JLabel lblWaveFilePath;
 	private JSpinner spnrBpm;
 	private JSpinner spnrOffset = new JSpinner();
 
@@ -316,8 +317,7 @@ public class BpmSynchorWindow implements KeyListener {
 		tfSongTitle.setColumns(10);
 		
 		JLabel lblWaveFileName = new JLabel("WAVE File:");
-		
-		JLabel lblWaveFilePath = new JLabel("Use [Set WAVE] button to load wave file. music file name will be shown here.");
+		lblWaveFilePath = new JLabel("Use [Set WAVE] button to load wave file. music file name will be shown here.");
 		
 		JLabel lblBeats = new JLabel("Beat:");
 		lblBeats.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -764,7 +764,7 @@ public class BpmSynchorWindow implements KeyListener {
 			is = new FileInputStream( f );
 
 			int byteRead = -1;
-			byteRead = is.read(Header);			// *.wav���� ������� https://anythingcafe.tistory.com/2
+			byteRead = is.read(Header);
 //			System.out.println("Header Chunk Size:"+( ((Header[17]&0xFF)<<8)+(Header[16]&0xFF)) );	// = 4����Ʈ ������ Header ũ��� �׸� ũ�� �����Ƿ�, ���� 2����Ʈ��. (little endian)
 //			System.out.println("num of Channel:"+( ((Header[23]&0xFF)<<8)+(Header[22]&0xFF)) );	// ä�� �� : 1=Mono, 2=Stereo, 5:4channel. 6:6channel, etc..
 //			System.out.println("Sample Rate:"+ ((Header[24]&0xFF)+((Header[25]&0xFF)<<8)) );				//( ((long)(Header[25]&0xFF)<<8)+Header[24]) );	// = 4����Ʈ little endian
@@ -775,7 +775,7 @@ public class BpmSynchorWindow implements KeyListener {
 			byteRead = is.read(Buffer);
 			is.close();
 
-			if (player != null) {		// ������ �����ϴ� Thread �� �����ؾ� �ϴµ�... ���� ����� ���� �𸣰ڴ�. 
+			if (player != null) {
 				player.pause();
 				player.interrupt();
 				player = null;
@@ -791,7 +791,7 @@ public class BpmSynchorWindow implements KeyListener {
 			int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
 			int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
 			int SampleRate = (Header[24]&0xFF)+((Header[25]&0xFF)<<8);
-			int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1�� Sample �� byte ��. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
+			int block_align = ((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
 			System.out.println("sample stripe = "+block_align );	
 
 			byte[] rawBuffer;
@@ -812,25 +812,20 @@ public class BpmSynchorWindow implements KeyListener {
 					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);
 				}
 			}
-
-//			System.out.println( "Number of byteRead="+ byteRead + " : " + Buffer[0]+"," + Buffer[4]+"," + Buffer[8]+"," + Buffer[12]+"," + Buffer[16]+"," + Buffer[20]+"," + Buffer[24]+"," + Buffer[28]+"," + Buffer[32]+"," + Buffer[36]+"," + Buffer[40]+"," + Buffer[44]+"," + Buffer[48] );
-//			System.out.println( "Number of byteRead="+ (byteRead/block_align) + " : " + rawBuffer[0]+"," + rawBuffer[1]+"," + rawBuffer[2]+"," + rawBuffer[3]+"," + rawBuffer[4]+"," + rawBuffer[5]+"," + rawBuffer[6]+"," + rawBuffer[7]+"," + rawBuffer[8]+"," + rawBuffer[9]+"," + rawBuffer[10]+"," + rawBuffer[11]+"," + rawBuffer[12] );
-
 			if (waveSynchPane != null) {
 				waveSynchPane.setWaveData(rawBuffer);
 				frmUkeBpmSynchronizer.repaint();
 			}
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
 
 	public File showFileDialog() {
-		final JFileChooser fc = new JFileChooser();
+//		final JFileChooser fc = new JFileChooser();
+		final JFileChooser fc = new JFileChooser("C:\\\\Users\\\\as.choi\\\\eclipse-workspace\\\\BpmSynchorProject\\\\src\\\\resource");
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
@@ -865,6 +860,7 @@ public class BpmSynchorWindow implements KeyListener {
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
 		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
+		lblWaveFilePath.setText(ukedata.mMusicUrl);
 	}
 
 	@Override

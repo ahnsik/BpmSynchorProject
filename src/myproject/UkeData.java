@@ -74,7 +74,11 @@ public class UkeData {
 			mMusicUrl = (String)jsonObj.getString("source");
 			mThumbnailUrl = (String)jsonObj.getString("thumbnail"); 
 			mSongTitle = (String)jsonObj.getString("title");
-			mBasicMeter = (String)jsonObj.getString("basic_beat");		// 박자 : 2/4, 3/4, 4/4, etc..
+			try {
+				mBasicMeter = (String)jsonObj.getString("basic_beat");		// 박자 : 2/4, 3/4, 4/4, etc..
+			} catch (JSONException jsonE) {
+				mBasicMeter = "4/4";			// 없으면 default 는 4/4 박자.
+			}
 			mStartOffset = (int)jsonObj.getInt("start_offset");
 			mBpm = (float)jsonObj.getDouble("bpm");
 			// 옵션 항목 체크
@@ -94,7 +98,7 @@ public class UkeData {
 				mAuthor = "undefined";
 			}
 			try {
-				mCommentary = (String)jsonObj.getString("comments");
+				mCommentary = (String)jsonObj.getString("comment");		// "comments" 아님.  주의할 것.
 			} catch (JSONException jsonE) {
 				mCommentary = "undefined";
 			}

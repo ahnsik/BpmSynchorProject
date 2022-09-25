@@ -213,11 +213,11 @@ public class WaveSynchPane extends JPanel
 		drawRuler(g, X_OFFSET, canvas_height-RULER_THICKNESS, canvas_width-X_OFFSET-X_PADDING, RULER_THICKNESS);
 
 		int ypos = canvas_height-RULER_THICKNESS;
-		// ���ֱ��, Stroke ����, etc.. 
+		// Stroke 방향, 트릭, 해머링,풀링 등의 기법 표시 영역.. 
 		technicStart_y = ypos-TECHNIC_AREA_THICKNESS;
 		drawTechnicArea(g, X_OFFSET, technicStart_y, canvas_width-X_OFFSET-X_PADDING, TECHNIC_AREA_THICKNESS );
 		ypos -= TECHNIC_AREA_THICKNESS;
-		// TAB �Ǻ� �׸��� -
+		// TAB 악보 표시 영역
 		tabStart_y = ypos-TAB_AREA_HEIGHT;
 		drawTABArea(g, X_OFFSET, tabStart_y, canvas_width-X_OFFSET-X_PADDING, TAB_AREA_HEIGHT );
 		ypos -= TAB_AREA_HEIGHT;
@@ -446,23 +446,30 @@ public class WaveSynchPane extends JPanel
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
 
-		int i, j;
+		int i, j, start, end;
 		if (uke_data == null)
 			return;
-		for (i=0; i<w; i++) {
-			int start = ((samples_per_pixel*i)+start_index);
-			int end = ((samples_per_pixel*(i+1))+start_index);
-
-			if (uke_data.notes==null) {
-				continue;
-			}
-			for (j=0; j<uke_data.notes.length; j++) {
-				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
-					g.setColor(Color.BLACK);
-					g.drawString(uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT);
-//					System.out.println("TS:"+uke_data.notes[j].timeStamp+"  "+uke_data.notes[j].lyric );
+		if (uke_data.notes != null) {
+			for (i=0; i<w; i++) {
+				start = ((samples_per_pixel*i)+start_index);
+				end = start+samples_per_pixel;
+				if(end >= uke_data.getSize() ) 
+					end = uke_data.getSize();
+				if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+					for (j=0; j<uke_data.notes.length; j++) {
+						int timeStamp = (int) uke_data.notes[j].timeStamp;
+						int start_ts = start*1000 / sample_rate, end_ts = end*1000 / sample_rate;
+						System.out.println( "index:"+j + ", TS:"+uke_data.notes[j].timeStamp + ", grid:"+start_ts+"-"+end_ts + ", lyric:"+uke_data.notes[j].lyric );
+						if ((start_ts >= timeStamp) && (end_ts < timeStamp) ) {
+							System.out.println("TS:"+uke_data.notes[j].timeStamp +", grid:" + start + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
+							g.drawRect( x+i, y, 12, FONT_HEIGHT );
+							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
+						}
+					}
 				}
 			}
+		} else {
+			System.out.println("잘못된 길을 들으셨네. - notes 데이터가 존재하지 않음." + uke_data.getSize() );
 		}
 
 	}
@@ -489,12 +496,7 @@ public class WaveSynchPane extends JPanel
 			int end = ((samples_per_pixel*(i+1))+start_index);
 			grid=false;
 			quaver_grid = false;
-//			for (j=start; j<end; j++) {
-//				if (j% (int)samples_per_quaver==0)
-//					grid=true;
-//				if ( (int)(j/samples_per_quaver)%quaver_mode == 0)
-//					quaver_grid = true;
-//			}
+
 			if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
 				grid=true;
 			}
@@ -515,25 +517,7 @@ public class WaveSynchPane extends JPanel
 		g.setColor(Color.DARK_GRAY);
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
-/*
-//					g.setColor(technicAreaColor_H);
-//					g.setColor(technicAreaColor);
-		int i, j;
-		if (uke_data == null)
-			return;
-		for (i=0; i<w; i++) {
-			int start = ((samples_per_pixel*i)+start_index);
-			int end = ((samples_per_pixel*(i+1))+start_index);
 
-			for (j=0; j<uke_data.notes.length; j++) {
-				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
-					g.setColor(Color.BLACK);
-					g.drawString(uke_data.notes[j].technic, x+i, y+FONT_HEIGHT);
-//					System.out.println("TS:"+uke_data.notes[j].timeStamp+"  "+uke_data.notes[j].technic);
-				}
-			}
-		}
-*/
 	}
 
 	/**
