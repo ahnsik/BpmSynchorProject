@@ -452,16 +452,16 @@ public class WaveSynchPane extends JPanel
 		if (uke_data.notes != null) {
 			for (i=0; i<w; i++) {
 				start = ((samples_per_pixel*i)+start_index);
-				end = start+samples_per_pixel;
-				if(end >= uke_data.getSize() ) 
-					end = uke_data.getSize();
+				end = start+samples_per_pixel;		// samples_per_quaver ????
+				if(end >= wave_data.length ) 
+					end = wave_data.length;
 				if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+					int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
 					for (j=0; j<uke_data.notes.length; j++) {
 						int timeStamp = (int) uke_data.notes[j].timeStamp;
-						int start_ts = start*1000 / sample_rate, end_ts = end*1000 / sample_rate;
-						System.out.println( "index:"+j + ", TS:"+uke_data.notes[j].timeStamp + ", grid:"+start_ts+"-"+end_ts + ", lyric:"+uke_data.notes[j].lyric );
-						if ((start_ts >= timeStamp) && (end_ts < timeStamp) ) {
-							System.out.println("TS:"+uke_data.notes[j].timeStamp +", grid:" + start + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
+						System.out.println(  "grid_msec:"+start_msec+"~"+end_msec + ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
+						if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
+							System.out.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
 							g.drawRect( x+i, y, 12, FONT_HEIGHT );
 							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
 						}
