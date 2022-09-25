@@ -52,11 +52,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.UIManager;
 import java.awt.SystemColor;
 import java.awt.event.InputMethodListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.InputMethodEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
 
-public class BpmSynchorWindow {
+public class BpmSynchorWindow implements KeyListener {
 
 	private final static int	ICON_SIZE = 92;
 
@@ -863,5 +865,23 @@ public class BpmSynchorWindow {
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
 		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("KeyTyped : "+ e);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.err.println("KeyPressed : "+ e);
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

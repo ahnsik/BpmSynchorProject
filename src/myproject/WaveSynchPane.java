@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import java.awt.Color;
@@ -148,6 +149,7 @@ public class WaveSynchPane extends JPanel
 		sample_rate = 8000;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 		playing_position = 0;
+
 	}
 
 	/**
@@ -667,6 +669,9 @@ public class WaveSynchPane extends JPanel
 
 		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
 			System.err.println("lyric display Area Clicked. !!!" );
+			String lyricInput = "";
+			lyricInput = JOptionPane.showInputDialog("가사입력");
+            System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
 		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
 			System.err.println("chord display Area Clicked. !!!" );
 		} else if ( (y>tabStart_y)&&(y<=(tabStart_y+TAB_AREA_HEIGHT)) ) {
@@ -678,7 +683,7 @@ public class WaveSynchPane extends JPanel
 			int xs = (int)((float)start/samples_per_quaver);
 			System.out.println("start="+start+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
 		}
-		
+
 	}
 
 	public void mousePressed(MouseEvent e) {
