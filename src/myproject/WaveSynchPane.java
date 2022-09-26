@@ -15,6 +15,8 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import myproject.UkeData.Note;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -648,6 +650,22 @@ public class WaveSynchPane extends JPanel
 		playing_position = milisec;
 	}
 
+
+	public int findIndexWithTimestamp(int msec) {
+		Note	notes[] = uke_data.notes;
+		int 	timestamp;
+		int		start = msec;		// 엉망이다. start 와 end 계산 방법을 다시 생각해 보라. 
+		int		end = start+ (int)(sample_rate*1000/samples_per_quaver);
+		for (int i=0; i<notes.length; i++) {
+			timestamp = (int) notes[i].timeStamp;
+			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp+ ", start="+start+", en="+end );
+			if ( (start <= timestamp) && (timestamp < end) ) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	public void keyTyped(KeyEvent e) {
 		System.out.println("WaveSynchPane KeyTyped:" + e.getKeyCode() );
 	}
@@ -659,16 +677,7 @@ public class WaveSynchPane extends JPanel
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
-//		if ( e.getWheelRotation() > 0) {
-//			if (samples_per_pixel < 280 )
-//				samples_per_pixel += 10;
-//		} else if ( e.getWheelRotation() < 0) {
-//			if (samples_per_pixel > 10 )
-//				samples_per_pixel -= 10;
-//		}
-//		System.out.println("samples_per_pixel = " + samples_per_pixel);
-
-		viewZoom( e.getWheelRotation() );
+		viewZoom( e.getWheelRotation() );		// e.getWheelRotation() 이 1 이면 증가, -1 이면 감소.
 		repaint();
 	}
 
@@ -688,6 +697,7 @@ public class WaveSynchPane extends JPanel
 	public void mouseMoved(MouseEvent e) {
 	}
 	public void mouseClicked(MouseEvent e) {
+		int sample_index, xs;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 		samples_per_pixel = 100;		// 24는 8분음표 1개에 해당하는 grid 크기.
 		int x = e.getX()-X_OFFSET;
@@ -695,10 +705,16 @@ public class WaveSynchPane extends JPanel
 		System.out.println("clicked=("+x+", "+y+")" );
 
 		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
-			System.err.println("lyric display Area Clicked. !!!" );
+			sample_index = (int)((samples_per_pixel*x)+start_index);
+			xs = (int)((float)sample_index/samples_per_quaver);
+			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
+//			int index = findIndexWithTimestamp( (int)(xs*samples_per_quaver*1000/sample_rate) );
+			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
 			String lyricInput = "";
 			lyricInput = JOptionPane.showInputDialog("가사입력");
-            System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
+            if (lyricInput != null) {
+    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
+            }
 		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
 			System.err.println("chord display Area Clicked. !!!" );
 		} else if ( (y>tabStart_y)&&(y<=(tabStart_y+TAB_AREA_HEIGHT)) ) {
@@ -706,9 +722,9 @@ public class WaveSynchPane extends JPanel
 		} else if ( (y>technicStart_y)&&(y<=(technicStart_y+TECHNIC_AREA_THICKNESS)) ) {
 			System.err.println("technic edit Area Clicked. !!!" );
 		} else {
-			int start = (int)((samples_per_pixel*x)+start_index);
-			int xs = (int)((float)start/samples_per_quaver);
-			System.out.println("start="+start+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
+			sample_index = (int)((samples_per_pixel*x)+start_index);
+			xs = (int)((float)sample_index/samples_per_quaver);
+			System.out.println("start="+sample_index+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
 		}
 
 	}

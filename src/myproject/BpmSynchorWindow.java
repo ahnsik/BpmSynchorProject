@@ -487,7 +487,7 @@ public class BpmSynchorWindow implements KeyListener {
 				waveSynchPane.viewZoom(-1);		// 확대
 			}
 		});
-		btnZoomIn.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png" ).getImage().getScaledInstance( 20, 20, Image.SCALE_DEFAULT)) );
+		btnZoomIn.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
 
 		JButton btnZoomOut = new JButton("");
 		btnZoomOut.addActionListener(new ActionListener() {
@@ -495,7 +495,7 @@ public class BpmSynchorWindow implements KeyListener {
 				waveSynchPane.viewZoom(1);		// 축소
 			}
 		});
-		btnZoomOut.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png" ).getImage().getScaledInstance( 20, 20, Image.SCALE_DEFAULT)) );
+		btnZoomOut.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
 
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
