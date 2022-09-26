@@ -64,7 +64,9 @@ public class WaveSynchPane extends JPanel
 	private float value_bpm = 80.0f;	// beats per minute.
 	// WAV파일 데이터의 녹음된 SampleRate ==>> 현재는 load 할 때 기본으로 8000Hz 로 변환해서 설정해 주고 있다. 나중엔 다양한 SampleRate 에 대응하도록 고려할 것.
 	private int sample_rate = 8000;
-
+	// wave form 의 offset. 박자/음표에 따른 grid 와 실제 wave 파일의 연주가 시작되는 차이값.(오차보정)
+	private int wave_offset = 0;
+	
 	/** 
 	 * UKE 파일 편집에 유용하게 사용되는 변수들 
 	 */
@@ -72,7 +74,7 @@ public class WaveSynchPane extends JPanel
 	private int quaver_mode = 8;
 	// WAV 파형을 스크롤 해서 표시할 수 있는 end limit (현재는 default 로 1개 음으로 해 놓았는데...)
 	private int maximum_start_index = (int)samples_per_quaver*quaver_mode;
-	// 스크롤함에 다라 WAV파형을 draw 할 첫번째 sample 인덱스.
+	// 스크롤함에 따라라 WAV파형을 draw 할 첫번째 sample 인덱스.
 	private int start_index = 0;
 	// 연주가 시작되고 나면, 현재까지 연주된 위치 == 앞으로 연주될 Sample의 index. (지금은 구현 안되어 있음)
 	private int playing_position = 0;
@@ -388,14 +390,16 @@ public class WaveSynchPane extends JPanel
 
 	private void drawWave(Graphics g, int x, int y, int w, int h, byte[] data, Color c) {
 		g.setColor(c);
-		int j, value, max, min, prev_min, start, end ;
+		int j, value, max, min, prev_min, start, end;
+		int offset = wave_offset * sample_rate/1000;		// msec 를 index 로 변환, sample_rate/1000 은 msec 당 sample 갯수.
 		int center_y = y;
 		int max_amplitude = h/2;
 		if (data!=null) {
 			max=0;
 			min=255;
 			for (int i=0; i<w; i++) {
-				start = ((samples_per_pixel*i)+start_index);
+				start = ((samples_per_pixel*i)+offset+start_index );		// offset 값이 적용되었는데도 bpm-grid 하고 wave 모양이 동일하다고 ?? 
+				if (start<0) continue;
 				end = start+samples_per_pixel;
 				if(end >= data.length ) 
 					end = data.length;
@@ -612,11 +616,30 @@ public class WaveSynchPane extends JPanel
 		repaint();
 	}
 
+	/**
+	 * WAVE파일의 파형을 마디 (박자,bpm) 의 간격 (grid) 에 맞춰 표시하기 위한 위치보정 값 설정.
+	 * @param msec	오프셋 값(msec단위)
+	 */
+	public void setWaveOffset(int msec) {
+		System.out.println("WAVE Offset:" + msec );
+		wave_offset = msec;		
+		repaint();
+	}
+
+	/**
+	 * 음원파일을 재생할 플레이어 설정. - 재생 및 재생위치 확인 
+	 * @param p  플레이어
+	 */
 	public void setPlayer(WavPlay p) {
 		player = p;
 		sample_rate = player.getSampleRate();
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 	}
+	
+	/**
+	 * 
+	 * @param milisec
+	 */
 	public void setDrawStart(int milisec) {
 		start_index = milisec;		// quaver 1�� ��ǥ�� �ʺ�(�ð�)�� milli-second ������ ������� �� ��. - Sampling ���ļ��� �������� ����ؾ� ��.
 		repaint();

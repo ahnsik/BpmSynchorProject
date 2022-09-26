@@ -477,6 +477,7 @@ public class BpmSynchorWindow implements KeyListener {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
 //				waveSynchPane.setDrawStart( Integer.parseInt(""+spnrOffset.getValue()) );
+				waveSynchPane.setWaveOffset( Integer.parseInt(""+spnrOffset.getValue()) );
 			}
 		});
 
@@ -862,6 +863,7 @@ public class BpmSynchorWindow implements KeyListener {
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
 		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
+		waveSynchPane.setWaveOffset(ukedata.mStartOffset);
 	}
 
 	@Override
