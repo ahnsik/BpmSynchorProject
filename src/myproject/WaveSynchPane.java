@@ -104,7 +104,7 @@ public class WaveSynchPane extends JPanel
 		canvas_height = getHeight();
 
 		gridFont = new Font("Monospaced", Font.BOLD, 9);
-		labelFont =  new Font("Tahoma", Font.PLAIN, 12);
+		labelFont =  new Font("맑은고딕", Font.PLAIN, 12);
 		tabFont =  new Font("Tahoma", Font.BOLD, 12);
 
 		bg_color = new Color(232, 240, 248);
