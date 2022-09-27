@@ -643,7 +643,7 @@ public class WaveSynchPane extends JPanel
 	 * @param milisec
 	 */
 	public void setDrawStart(int milisec) {
-		start_index = milisec;		// quaver 1�� ��ǥ�� �ʺ�(�ð�)�� milli-second ������ ������� �� ��. - Sampling ���ļ��� �������� ����ؾ� ��.
+		start_index = milisec;
 		repaint();
 	}
 	public void setPlayingPosition(int milisec) {
@@ -654,11 +654,14 @@ public class WaveSynchPane extends JPanel
 	public int findIndexWithTimestamp(int msec) {
 		Note	notes[] = uke_data.notes;
 		int 	timestamp;
-		int		start = msec;		// 엉망이다. start 와 end 계산 방법을 다시 생각해 보라. 
-		int		end = start+ (int)(sample_rate*1000/samples_per_quaver);
+		int		start_index = (int) ((int) ((msec*sample_rate/1000)/samples_per_quaver)*samples_per_quaver);	
+
+		int		start = ((start_index*1000)/sample_rate); 
+		int		end = start+ (int)(samples_per_quaver*1000/sample_rate);
+		System.out.println(" CLICKED :  --  start="+start+", en="+end +"=== msec:" + msec + "samples_per_quaver:"+ samples_per_quaver );
 		for (int i=0; i<notes.length; i++) {
 			timestamp = (int) notes[i].timeStamp;
-			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp+ ", start="+start+", en="+end );
+			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp );
 			if ( (start <= timestamp) && (timestamp < end) ) {
 				return i;
 			}
@@ -708,12 +711,13 @@ public class WaveSynchPane extends JPanel
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
 			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-//			int index = findIndexWithTimestamp( (int)(xs*samples_per_quaver*1000/sample_rate) );
 			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
-			String lyricInput = "";
-			lyricInput = JOptionPane.showInputDialog("가사입력");
+			String lyricInput = uke_data.notes[index].lyric;
+			lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );
             if (lyricInput != null) {
     			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
+    			uke_data.notes[index].lyric = lyricInput;
+    			repaint();
             }
 		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
 			System.err.println("chord display Area Clicked. !!!" );
