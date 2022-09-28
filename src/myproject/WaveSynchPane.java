@@ -458,16 +458,17 @@ public class WaveSynchPane extends JPanel
 		if (uke_data.notes != null) {
 			for (i=0; i<w; i++) {
 				start = ((samples_per_pixel*i)+start_index);
-				end = start+samples_per_pixel;		// samples_per_quaver ????
-				if(end >= wave_data.length ) 
-					end = wave_data.length;
+				end = (int)(start+samples_per_quaver);	
+//				if(end >= wave_data.length )		// msec 시간 계산을 위한 중간 값이므로, wave_data 배열의 index값의 overflow 를 체크할 필요가 없다.  
+//					end = wave_data.length;
 				if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
 					int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
+					System.err.println(  "quaver_start:"+start_msec+"~"+end_msec );
 					for (j=0; j<uke_data.notes.length; j++) {
 						int timeStamp = (int) uke_data.notes[j].timeStamp;
-//						System.out.println(  "grid_msec:"+start_msec+"~"+end_msec + ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
+//						System.out.println(  ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
 						if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
-							//System.out.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
+							System.err.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
 							g.drawRect( x+i, y, 12, FONT_HEIGHT );
 							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
 						}
@@ -661,7 +662,7 @@ public class WaveSynchPane extends JPanel
 		System.out.println(" CLICKED :  --  start="+start+", en="+end +"=== msec:" + msec + "samples_per_quaver:"+ samples_per_quaver );
 		for (int i=0; i<notes.length; i++) {
 			timestamp = (int) notes[i].timeStamp;
-			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp );
+//			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp );
 			if ( (start <= timestamp) && (timestamp < end) ) {
 				return i;
 			}
@@ -711,14 +712,18 @@ public class WaveSynchPane extends JPanel
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
 			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
-			String lyricInput = uke_data.notes[index].lyric;
-			lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );
-            if (lyricInput != null) {
-    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
-    			uke_data.notes[index].lyric = lyricInput;
-    			repaint();
-            }
+//			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
+			if (index < 0) {
+				System.err.println("No note data. wanna new ?? : msec=" + (xs*samples_per_quaver*1000)/sample_rate );
+			} else {
+				String lyricInput = uke_data.notes[index].lyric;
+				lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );
+	            if (lyricInput != null) {
+	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
+	    			uke_data.notes[index].lyric = lyricInput;
+	    			repaint();
+	            }
+			}
 		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
 			System.err.println("chord display Area Clicked. !!!" );
 		} else if ( (y>tabStart_y)&&(y<=(tabStart_y+TAB_AREA_HEIGHT)) ) {
