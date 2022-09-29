@@ -223,6 +223,19 @@ public class BpmSynchorWindow implements KeyListener {
 			}
 		});
 		JButton btnWriteFile = new JButton("WriteFile");
+		btnWriteFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				File f = showFileDialog();
+//				if (f==null) {
+//					data.SaveToFile(f);
+//					System.out.println("File Not specified.");
+//					return;
+//				}
+				System.out.println("Selected Uke File:" + f.getPath() );
+				System.out.println(" -- getParent():" + f.getParent() );
+				data.SaveToFile(f);
+			}
+		});
 
 		GroupLayout gl_panelFileManager = new GroupLayout(panelFileManager);
 		gl_panelFileManager.setHorizontalGroup(

@@ -463,12 +463,12 @@ public class WaveSynchPane extends JPanel
 //					end = wave_data.length;
 				if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
 					int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
-					System.err.println(  "quaver_start:"+start_msec+"~"+end_msec );
+//					System.err.println(  "quaver_start:"+start_msec+"~"+end_msec );
 					for (j=0; j<uke_data.notes.length; j++) {
 						int timeStamp = (int) uke_data.notes[j].timeStamp;
 //						System.out.println(  ",\t index:"+j + ", TS:"+timeStamp + ", lyric:"+uke_data.notes[j].lyric );
 						if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
-							System.err.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
+//							System.err.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
 							g.drawRect( x+i, y, 12, FONT_HEIGHT );
 							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
 						}
@@ -715,6 +715,15 @@ public class WaveSynchPane extends JPanel
 //			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
 			if (index < 0) {
 				System.err.println("No note data. wanna new ?? : msec=" + (xs*samples_per_quaver*1000)/sample_rate );
+
+				String lyricInput = null;
+				lyricInput = JOptionPane.showInputDialog(null, "새로운 가사입력", lyricInput );
+	            if (lyricInput != null) {
+//	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
+	            	int new_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
+	            	uke_data.notes[new_index].lyric = lyricInput;		// 새로운 가사를 넣어 줌. 
+	    			repaint();
+	            }
 			} else {
 				String lyricInput = uke_data.notes[index].lyric;
 				lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );

@@ -1,8 +1,11 @@
 package myproject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,7 +60,7 @@ public class UkeData {
 		numNotes = 0;
 		notes = null;		// 갯수가 0개.
 	}
-	
+
 	/**
 	 * Uke 파일로 부터 JSON 데이터를 읽어 와서 notes 데이터를 모두 읽어 들임. 
 	 * @param f		*.uke 파일 핸들러
@@ -150,86 +153,110 @@ public class UkeData {
 		return false;
 	}
 
-/*
-    public JSONObject makeJSON() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("source", mMusicURL );
-            json.put("thumbnail", mThumbnailURL );
-            json.put("title", mSongTitle);
-            json.put("category", mCategory);
-            json.put("author", mAuthor );
-//            json.put("author_note", mAuthorNote);
-//            json.put("author_comment", mAuthorComment);
-//            json.put("create_date", mDateCreated );
-            json.put("comment", mCommentary);
-            json.put("basic_beat", mBasicBeat);
-            json.put("start_offset", mStartOffset);
-            json.put("bpm", mBpm);
-            json.put("notes", notes);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+	/**
+	 * uke 데이터에 새로운 음표노드를 추가하는 함수. (빈 note 하나를 추가함) - 이후에 가사/테크닉/TAB음표 등을 설정해야 함. 
+	 * @param msec	추가할 위치 (milli-second단위)
+	 * @return		note가 추가된 위치 (index) 
+	 */
+	public int appendNote(int msec) {
+		int i, j;
+		Note tempArray[] = new Note[notes.length+1];	// 갯수 하나 늘려서 배열 만들고,
+		System.out.println("Apped new at:" + msec );
+		for (i=0; i<notes.length; i++) {
+			System.out.println("copying.."+i + "(ts:" + notes[i].timeStamp+")" );
+			if (notes[i].timeStamp == msec) {
+				// 중복되는 값이 존재하므로 취소 하고,  index 는 -1 을 리턴.
+				return -1;
+			} else if (notes[i].timeStamp > msec) {	// timeStamp 값이 msec 보다 커지는 시점에서 break;  i 값이 새로 추가되는 index 값.
+				break;
+			} else {		// timeStamp 값이 msec 보다 작은 것은 배열복사.
+				tempArray[i] = notes[i];
+			}
+		}
+		tempArray[i] = new Note();
+		tempArray[i].timeStamp = msec;		// 새로운 note 로 추가된 것.
+		for (j=i; j<notes.length; j++) {	// 배열 나머지 복사. 
+			tempArray[j+1] = notes[j];
+		}
 
-        return json;
-    }
-*/
-/*
-	public boolean  setData(String dataFileString) {
+		// 배열 복사가 끝났으면, notes 배열로 바꿔치기 해 줌.
+		notes = tempArray;
+//		System.arraycopy(notes, 0, tempArray, 0, notes.length );	// 일단 왕창 복사해 넣고 나서,
+		return i;		// 새로 추가된 위치(index)를 리턴해 줌.
+	}
 
-        System.out.println("-=========== DataFile Dump ===========-");
-        System.out.println(dataFileString );
-        System.out.println("-=========== DataFile Dump END ===========-");
-        try {
-            System.out.println("start parse" );
-            JSONObject  ukeData = new JSONObject(dataFileString);
+	/**
+	 * 편집된 데이터를 Uke 파일로 저장하는 함수.
+	 * @param f		*.uke 파일 핸들러
+	 * @return		성공여부
+	 */
+	public boolean SaveToFile(File f) {
+		if (f==null) {
+			System.out.println("File Open Error. !!!");
+			return false;
+		}
 
-            this.mMusicURL = ukeData.getString("source");
-            System.out.println(" ** very important: source - " + this.mMusicURL );
-            this.mThumbnailURL = ukeData.getString("thumbnail");
-            this.mSongTitle = ukeData.getString("title");
+		JSONObject writeObj = new JSONObject();
+		try {
+			writeObj.put("version", version);
+			writeObj.put("source", mMusicUrl);
+			writeObj.put("thumbnail", mThumbnailUrl);
+			writeObj.put("title", mSongTitle);
+			writeObj.put("category", mCategory);
+			writeObj.put("author", mAuthor);
+			writeObj.put("comment", mCommentary);
+			writeObj.put("basic_beat", mBasicMeter);
+			writeObj.put("start_offset", mStartOffset);
+//			writeObj.put("level", mLevel);
+			writeObj.put("bpm", mBpm);
+			JSONArray notesArray = new JSONArray();
+			for (int i=0; i<notes.length; i++) {
+				JSONObject noteData = new JSONObject();
+				noteData.put("lyric", notes[i].lyric);
+				noteData.put("technic", notes[i].technic);
+				JSONArray soundArray = new JSONArray();
+				if (notes[i].note == null) {
+					noteData.put("note", soundArray);
+				} else {
+					for (int j=0; j<notes[i].note.length; j++) {
+						soundArray.put(notes[i].note[j]);
+					}
+					noteData.put("note", soundArray);
+				}
+				JSONArray tabArray = new JSONArray();
+				if (notes[i].tab == null) {
+					noteData.put("tab", tabArray);
+				} else {
+					for (int j=0; j<notes[i].tab.length; j++) {
+						tabArray.put(notes[i].tab[j]);
+					}
+					noteData.put("tab", tabArray);
+				}
+				if (notes[i].chordName == null) {
+					noteData.put("chord", "" );
+				} else {
+					noteData.put("chord", notes[i].chordName);
+				}
+				noteData.put("timestamp", notes[i].timeStamp);
+				notesArray.put(noteData);
+			}
+			writeObj.put("notes", notesArray);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
-            this.mStartOffset = ukeData.getInt("start_offset");
-            this.mBpm = (float) ukeData.getDouble("bpm");
-
-            JSONArray noteData = ukeData.getJSONArray("notes" );
-            this.numNotes = noteData.length();
-//            this.playtime = ukeData.getLong("playtime");
-
-            System.out.println("Title: " + this.mSongTitle + ", BPM: "+ this.mBpm );
-            System.out.println("notes.length= " + this.numNotes );
-
-            try {
-                System.out.println("start to parsing.." );
-                this.mBasicBeat = ukeData.getString("basic_beat");
-                System.out.println("reading mBasicBeat : " +  this.mBasicBeat );
-                this.mCommentary = ukeData.getString("comment");
-                System.out.println("reading mCommentary : " +  this.mCommentary );
-//                this.mCategory = ukeData.getString("category");
-//                this.mAuthor = ukeData.getString("author");
-                System.out.println("mCommentary :"+this.mCommentary );
-//                this.mAuthorNote = ukeData.getString("auther_note");
-//                this.mAuthorComment = ukeData.getString("auther_comment");
-//                this.mDateCreated = ukeData.getString("create_date");
-            } catch (Exception e) {
-                System.out.println("[][][][][][] Parsing Error for sub-informations [][][][][][] ");
-                System.out.println("mCategory :"+this.mCategory );
-                System.out.println("mAuthor :"+this.mAuthor );
-//                System.out.println("mAuthorNote :"+this.mAuthorNote );
-//                System.out.println("mAuthorComment :"+this.mAuthorComment );
-//                System.out.println("mDateCreated :"+this.mDateCreated );
-                System.out.println("mCommentary :"+this.mCommentary );
-            }
-
-        } catch (Exception e) {
-            System.out.println("-xxxxxxxxxxxx Error to parse JSON xxxxxxxxxxxx-");
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }   // end of setData();
-*/
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(f));
+//			System.out.println("File Open Error. !!!");
+			writer.write( writeObj.toString() );
+			System.out.println("JSON:"+ writeObj.toString());
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
 
     public String getComment() {
     	return this.mCommentary;
