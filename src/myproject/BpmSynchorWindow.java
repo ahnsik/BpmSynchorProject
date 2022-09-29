@@ -130,10 +130,10 @@ public class BpmSynchorWindow implements KeyListener {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Preparing New uke DATA");
 				if (data != null) {
-					int result = JOptionPane.showConfirmDialog(null, "편집중인 데이터는 모두 사라집니다. 저장하지 않고 새로 시작할까요?", "새로만들기 확인", JOptionPane.OK_CANCEL_OPTION);
+					int result = JOptionPane.showConfirmDialog(null, "편집중인 데이터는 모두 사라집니다. 저장하지 않고 새로 시작할까요?", "새로만들기 확인", JOptionPane.YES_NO_OPTION);
 					if (result == JOptionPane.CLOSED_OPTION) {
 						// Dialog 창을 그냥 취소한 경우. - 아무것도 안함.
-					} else if (result == JOptionPane.OK_OPTION) {
+					} else if (result == JOptionPane.YES_OPTION) {
 						makeNew();
 					} else {
 						// CANCEL 버튼인 경우 - 아무것도 안함.
@@ -141,6 +141,7 @@ public class BpmSynchorWindow implements KeyListener {
 				} else {	// 원래 부터 null 인 상태.
 					makeNew();
 				}
+				frmUkeBpmSynchronizer.repaint();
 			}
 		});
 
@@ -855,6 +856,7 @@ public class BpmSynchorWindow implements KeyListener {
 
 		if (waveSynchPane != null) {
 			waveSynchPane.setUkeData(data);
+			waveSynchPane.setWaveData(null);
 		}
 	}
 

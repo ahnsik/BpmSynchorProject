@@ -532,7 +532,8 @@ public class WaveSynchPane extends JPanel
 	 * @param data	*.wav에서 읽어 온 음성데이터 (8bit unsigned, mono 데이터만 가능함)
 	 */
 	public void setWaveData(byte[] data) {
-		System.out.println("WAVE DATA SET. : length=" + data.length);
+		if (data != null)
+			System.out.println("WAVE DATA SET. : length=" + data.length);
 		wave_data = data;
 	}
 
