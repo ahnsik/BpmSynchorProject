@@ -163,7 +163,7 @@ public class UkeData {
 		Note tempArray[] = new Note[notes.length+1];	// 갯수 하나 늘려서 배열 만들고,
 		System.out.println("Apped new at:" + msec );
 		for (i=0; i<notes.length; i++) {
-			System.out.println("copying.."+i + "(ts:" + notes[i].timeStamp+")" );
+//			System.out.println("copying.."+i + "(ts:" + notes[i].timeStamp+")" );
 			if (notes[i].timeStamp == msec) {
 				// 중복되는 값이 존재하므로 취소 하고,  index 는 -1 을 리턴.
 				return -1;
@@ -183,6 +183,51 @@ public class UkeData {
 		notes = tempArray;
 //		System.arraycopy(notes, 0, tempArray, 0, notes.length );	// 일단 왕창 복사해 넣고 나서,
 		return i;		// 새로 추가된 위치(index)를 리턴해 줌.
+	}
+
+	/**
+	 * 시간 값을 기준으로, 해당 시간의 note 데이터를 제거 한다.
+	 * @param msec		제거할 note 음의 위치 (msec)
+	 */
+	public void removeNote(int msec) {
+		int i, j;
+		Note tempArray[] = new Note[notes.length];
+		System.out.println("Remove from:" + msec+" msec" );
+		for (i=0; i<notes.length; i++) {
+			if (notes[i].timeStamp == msec) {
+				break;	// 중복되는 값이 존재하면 건너 뜀 ==> TODO: msec 포함하는 grid 를 판단하도록 수정 필요.
+			} else {		// timeStamp 값이 msec 보다 작은 것은 배열복사.
+				tempArray[i] = notes[i];
+			}
+		}
+		// 배열 나머지 복사
+		for (j=i; j<notes.length-1; j++) {
+			tempArray[j] = notes[j+1];
+		}
+		// 배열 복사가 끝났으면, notes 배열로 바꿔치기 해 줌.
+		notes = tempArray;
+	}
+
+	/**
+	 *  배열 인덱스 값으로 note 음표 노드 하나를 제거함.
+	 * @param index		제거할 node 의 index 위치.
+	 */
+	public void removeNoteAt(int index) {
+		int i, j;
+		Note tempArray[] = new Note[notes.length];
+		for (i=0; i<notes.length; i++) {
+			if ( i == index) {
+				break;	// 중복되는 값이 존재하면 건너 뜀 ==> TODO: msec 포함하는 grid 를 판단하도록 수정 필요.
+			} else {		// timeStamp 값이 msec 보다 작은 것은 배열복사.
+				tempArray[i] = notes[i];
+			}
+		}
+		// 배열 나머지 복사
+		for (j=i; j<notes.length-1; j++) {
+			tempArray[j] = notes[j+1];
+		}
+		// 배열 복사가 끝났으면, notes 배열로 바꿔치기 해 줌.
+		notes = tempArray;
 	}
 
 	/**
