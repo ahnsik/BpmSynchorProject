@@ -15,6 +15,9 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import myproject.UkeData.Note;
 
 import java.awt.Color;
@@ -654,13 +657,17 @@ public class WaveSynchPane extends JPanel
 
 
 	public int findIndexWithTimestamp(int msec) {
+		if (uke_data.notes == null) {
+			return -1;
+		}
 		Note	notes[] = uke_data.notes;
 		int 	timestamp;
 		int		start_index = (int) ((int) ((msec*sample_rate/1000)/samples_per_quaver)*samples_per_quaver);	
 
 		int		start = ((start_index*1000)/sample_rate); 
 		int		end = start+ (int)(samples_per_quaver*1000/sample_rate);
-		System.out.println(" CLICKED :  --  start="+start+", en="+end +"=== msec:" + msec + "samples_per_quaver:"+ samples_per_quaver );
+		System.out.println(" CLICKED :  --  start="+start+", en="+end +"=== msec:" + msec + "samples_per_quaver:"+ samples_per_quaver  );
+		System.out.println("  음표 갯수 : "+ notes.length + ", notes[0]="+notes );
 		for (int i=0; i<notes.length; i++) {
 			timestamp = (int) notes[i].timeStamp;
 //			System.out.println("searching.. i=:"+i +", timestamp="+ timestamp );
@@ -692,6 +699,9 @@ public class WaveSynchPane extends JPanel
 	public void mouseDragged(MouseEvent e) {
 		if (mousePt==null)
 			return;
+		if (wave_data==null)
+			return;
+		
 		start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
 		if (start_index < 0)
 			start_index = 0;
@@ -709,6 +719,11 @@ public class WaveSynchPane extends JPanel
 		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );
 
+		if (uke_data.notes == null) {
+			System.err.println("No Notes array exist. - make new array." );
+			uke_data.notes = new Note[0];
+//			repaint();
+		}  
 		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
