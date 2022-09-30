@@ -148,6 +148,13 @@ public class BpmSynchorWindow implements KeyListener {
 		JButton btnOpenFile = new JButton("Open File..");
 		btnOpenFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//if (data != null) {		// 편집 중인 데이터가 있으면  확인할 것.
+				//	int result = JOptionPane.showConfirmDialog(null, "편집중인 데이터는 모두 사라집니다. 저장하지 않고 진행할까요?", "파일 열기", JOptionPane.YES_NO_OPTION);
+				//	if (result != JOptionPane.YES_OPTION) {
+				//		return;		// YES 가 아니면 아무것도 안하고 그냥 종료함.
+				//	}
+				//}
+
 				File f = showFileDialog();
 				if (f==null) {
 					System.out.println("File Not specified.");
@@ -164,26 +171,24 @@ public class BpmSynchorWindow implements KeyListener {
 				}
 
 				if (data.mMusicUrl != null) {
-//					File mp3file =  new File("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
 					System.out.println("\t>> File:"+data.mMusicUrl );
 					File mp3file =  new File(f.getParent()+"/"+data.mMusicUrl);
 
-//			    	player = new WavPlay(mp3file);
+			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
-//						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
-//						player.setView(waveSynchPane);
-//						waveSynchPane.setPlayer(player);
+						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
+						player.setView(waveSynchPane);
+						waveSynchPane.setPlayer(player);
 						setWaveData(mp3file); 
 					}
 
-					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
-			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicUrl );			// new File(f.getParent(), data.mMusicURL) );
-//			    	player = new WavPlay(mp3file);
-			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
+//					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
+//			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicUrl );			// new File(f.getParent(), data.mMusicURL) );
+//			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
 			    } else {
 			    	System.out.println("No music scpecified.");
+					player = null;
 			    }
-				player = null;
 
 				lblWaveFilePath.setText(data.mMusicUrl);
 				setAlbumImage(imgAlbumImage, f.getParent()+"/"+data.mThumbnailUrl );
@@ -408,7 +413,8 @@ public class BpmSynchorWindow implements KeyListener {
 		btnToStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("start Button Clicked.");
-				player.setPlayingPositionWithMilliSecond(3000);
+				player.pause();
+				player.setPlayingPositionWithMilliSecond(0);
 			}
 		});
 
@@ -416,8 +422,10 @@ public class BpmSynchorWindow implements KeyListener {
 		btnPlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Play Button Clicked.");
-				if (player == null)
+				if (player == null) {
+					System.out.println("Player is null.");
 					return;
+				}
 				player.restart();
 			}
 		});
