@@ -137,7 +137,7 @@ public class BpmSynchorWindow implements KeyListener {
 						makeNew();
 					} else {
 						// CANCEL 버튼인 경우 - 아무것도 안함.
-				}
+					}
 				} else {	// 원래 부터 null 인 상태.
 					makeNew();
 				}

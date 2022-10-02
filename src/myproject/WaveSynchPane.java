@@ -12,15 +12,21 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import myproject.UkeData.Note;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -473,13 +479,13 @@ public class WaveSynchPane extends JPanel
 						if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
 //							System.err.println("TS:"+timeStamp +", grid:" + start_msec + ", lyric:"+uke_data.notes[j].lyric + ", index:" + j);
 							g.drawRect( x+i, y, 12, FONT_HEIGHT );
-							g.drawString( uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
+							g.drawString( ""+uke_data.notes[j].lyric, x+i, y+FONT_HEIGHT );
 						}
 					}
 				}
 			}
-		} else {
-			System.out.println("잘못된 길을 들으셨네. - notes 데이터가 존재하지 않음." + uke_data.getSize() );
+		//} else {
+		//	System.out.println("잘못된 길을 들으셨네. - notes 데이터가 존재하지 않음." + uke_data.getSize() );
 		}
 
 	}
@@ -713,22 +719,66 @@ public class WaveSynchPane extends JPanel
 	}
 	public void mouseClicked(MouseEvent e) {
 		int sample_index, xs;
+		int note_index = -1;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 		samples_per_pixel = 100;		// 24는 8분음표 1개에 해당하는 grid 크기.
 		int x = e.getX()-X_OFFSET;
 		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );
 
+		sample_index = (int)((samples_per_pixel*x)+start_index);
+		xs = (int)((float)sample_index/samples_per_quaver);
+		if (uke_data.notes == null) {
+			uke_data.notes = new Note[0];
+			note_index = -1;
+			System.err.println("uke_data.notes  is null");
+		} else {
+			note_index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
+		}
+		System.out.println("Clicked quaver_index:("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index=" + note_index );
+
+		NoteInputDlg  editNote = new NoteInputDlg( null, "연주음 편집");
+		
+		if (note_index < 0 ) {
+			note_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
+		}
+		editNote.setData(uke_data.notes[note_index]);
+		editNote.setSize(352, 356);
+
+		int result = editNote.showDialog();
+		if (result == NoteInputDlg.OK_OPTION ) {
+			Note temp = editNote.getData();
+			System.out.println("Note:"+temp+", lyric:" + temp + ", TS:"+temp.timeStamp + ", chord:" + temp.chordName + ", tab:" + temp.tab );
+			//uke_data.notes[0] = editNote.getData();
+			// TODO:  delete this note 체크했을 때에는 해당 노드를 삭제 해야 한다.
+		} else {
+			
+		}
+		System.err.println("showDialog returns ." + result );
+		repaint();
+
+
+//		} else {
+//			sample_index = (int)((samples_per_pixel*x)+start_index);
+//			xs = (int)((float)sample_index/samples_per_quaver);
+//			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
+//			if (index < 0) {
+//            	int new_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
+//            	uke_data.notes[new_index].lyric = lyricInput;		// 새로운 가사를 넣어 줌. 
+//    			repaint();
+//			} else {
+//			}
+//		}
+/*		
 		if (uke_data.notes == null) {
 			System.err.println("No Notes array exist. - make new array." );
 			uke_data.notes = new Note[0];
-//			repaint();
 		}  
 		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
 			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-//			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
+			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
 			if (index < 0) {
 				System.err.println("No note data. wanna new ?? : msec=" + (xs*samples_per_quaver*1000)/sample_rate );
 
@@ -760,7 +810,7 @@ public class WaveSynchPane extends JPanel
 			xs = (int)((float)sample_index/samples_per_quaver);
 			System.out.println("start="+sample_index+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
 		}
-
+*/
 	}
 
 	public void mousePressed(MouseEvent e) {
