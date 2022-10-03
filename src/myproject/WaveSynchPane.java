@@ -12,21 +12,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import myproject.UkeData.Note;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -430,28 +419,36 @@ public class WaveSynchPane extends JPanel
 	}
 
 	public void drawChordArea(Graphics g, int x, int y, int w, int h) {
-
 		String label="chord:";
 		g.setFont(labelFont);
 		g.setColor(Color.DARK_GRAY);
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
-/*
-		int i, j;
+
+		int i, j, start, end;
 		if (uke_data == null)
 			return;
+		if (uke_data.notes == null)
+			return;
 		for (i=0; i<w; i++) {
-			int start = ((samples_per_pixel*i)+start_index);
-			int end = ((samples_per_pixel*(i+1))+start_index);
+			start = ((samples_per_pixel*i)+start_index);
+			end = (int)(start+samples_per_quaver);	
 
-			for (j=0; j<uke_data.notes.length; j++) {
-				if ( (uke_data.notes[j].timeStamp*sample_rate/1000 >= start)&&(uke_data.notes[j].timeStamp*sample_rate/1000 < end)) {
-					g.setColor(Color.BLACK);
-					g.drawString(uke_data.notes[j].chordName, x+i, y+FONT_HEIGHT);
+			if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+				int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
+
+				for (j=0; j<uke_data.notes.length; j++) {
+					int timeStamp = (int) uke_data.notes[j].timeStamp;
+					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
+						g.drawRect( x+i, y, 12, FONT_HEIGHT );
+						g.drawString( uke_data.notes[j].chordName, x+i, y+FONT_HEIGHT );
+						System.out.println("drawing.. chordName="+uke_data.notes[j].chordName );
+					}
 				}
+
 			}
 		}
-*/
+
 	}
 
 	public void drawLyricArea(Graphics g, int x, int y, int w, int h) {
@@ -742,6 +739,17 @@ public class WaveSynchPane extends JPanel
 		if (note_index < 0 ) {
 			note_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
 		}
+
+		//System.out.println("before Dialog- TS:"+ uke_data.notes[note_index].timeStamp+ ", chord:" + uke_data.notes[note_index].chordName + ", tab:"+uke_data.notes[note_index].tab );
+		//if (uke_data.notes[note_index].tab != null) {
+		//	System.out.print("\t tab:");
+		//	String tab_str[] = uke_data.notes[note_index].tab; 
+		//	for (int i=0; i<tab_str.length; i++) {
+		//		System.out.print(", "+tab_str[i] );
+		//	}
+		//	System.out.println("\t");
+		//}
+
 		editNote.setData(uke_data.notes[note_index]);
 		editNote.setSize(352, 356);
 
@@ -757,23 +765,7 @@ public class WaveSynchPane extends JPanel
 		System.err.println("showDialog returns ." + result );
 		repaint();
 
-
-//		} else {
-//			sample_index = (int)((samples_per_pixel*x)+start_index);
-//			xs = (int)((float)sample_index/samples_per_quaver);
-//			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-//			if (index < 0) {
-//            	int new_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
-//            	uke_data.notes[new_index].lyric = lyricInput;		// 새로운 가사를 넣어 줌. 
-//    			repaint();
-//			} else {
-//			}
-//		}
 /*		
-		if (uke_data.notes == null) {
-			System.err.println("No Notes array exist. - make new array." );
-			uke_data.notes = new Note[0];
-		}  
 		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
@@ -799,12 +791,6 @@ public class WaveSynchPane extends JPanel
 	    			repaint();
 	            }
 			}
-		} else if ( (y>chordStart_y)&&(y<=(chordStart_y+CHORD_AREA_THICKNESS)) ) {
-			System.err.println("chord display Area Clicked. !!!" );
-		} else if ( (y>tabStart_y)&&(y<=(tabStart_y+TAB_AREA_HEIGHT)) ) {
-			System.err.println("TAB edit Area Clicked. !!!" );
-		} else if ( (y>technicStart_y)&&(y<=(technicStart_y+TECHNIC_AREA_THICKNESS)) ) {
-			System.err.println("technic edit Area Clicked. !!!" );
 		} else {
 			sample_index = (int)((samples_per_pixel*x)+start_index);
 			xs = (int)((float)sample_index/samples_per_quaver);
@@ -827,7 +813,6 @@ public class WaveSynchPane extends JPanel
 
 ////////////	
 	public void viewZoom(int zoom_factor) {
-//		System.out.println("Mouse Wheel listener:" + zoom_factor + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
 		if ( zoom_factor > 0) {
 			if (samples_per_pixel < 280 )
 				samples_per_pixel += 10;
@@ -835,7 +820,6 @@ public class WaveSynchPane extends JPanel
 			if (samples_per_pixel > 10 )
 				samples_per_pixel -= 10;
 		}
-//		System.out.println("samples_per_pixel = " + samples_per_pixel);
 		repaint();
 	}
 

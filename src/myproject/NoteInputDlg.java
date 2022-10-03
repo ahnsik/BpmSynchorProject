@@ -56,7 +56,6 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		setTitle("연주음 입력");
 		//setDefaultCloseOperation(DO_NOTHING_ON_CLOSE); 	- 이걸 사용하면, Close 버튼이 무반응  - 프로그램 종료 안됨.
 
-//		System.out.println("timeStamp = " + originData.timeStamp);
 		JLabel lblTimeStamp = new JLabel("timeStamp");
 		
 		spnrTimeStamp = new JSpinner();
@@ -103,11 +102,8 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		tfTechnics.setColumns(10);
 		
 		JLabel lblSound_A = new JLabel("New label");
-		
 		JLabel lblSound_E = new JLabel("New label");
-		
 		JLabel lblSound_C = new JLabel("New label");
-		
 		JLabel lblSound_G = new JLabel("New label");
 		
 		JButton btnOK = new JButton("입력 확인");
@@ -271,6 +267,16 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 
 	public void setData(Note data) {
 		System.out.println("NoteInputDlg. setData() with" + data );
+
+		System.out.println("- TS:"+ data.timeStamp+ ", chord:" + data.chordName + ", tab:"+data.tab );
+		if (data.tab != null) {
+			System.out.print("\t tab:");
+			for (int i=0; i<data.tab.length; i++) {
+				System.out.print(", "+data.tab[i] );
+			}
+			System.out.println("\t");
+		}		
+		
 //		if (data==null) {
 //			originData.timeStamp = 0;
 //			originData.chordName = "";
@@ -286,26 +292,29 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 			tfLyric.setText(originData.lyric);
 			cbChords.setName(originData.chordName);
 			if (originData.tab == null) {
+				System.out.println("tab is NULL" );
 				originData.tab = new String[4];
-			}
-
-			for (int i=0; i<originData.tab.length; i++) {
-				if (originData.tab[i] != null) {
-					if (originData.tab[i].indexOf("G") > 0) {
-						tf_G.setText(originData.tab[i]);
-					} else if (originData.tab[i].indexOf("C") > 0) {
-						tf_C.setText(originData.tab[i]);
-					} else if (originData.tab[i].indexOf("E") > 0) {
-						tf_E.setText(originData.tab[i]);
-					} else if (originData.tab[i].indexOf("A") > 0) {
-						tf_A.setText(originData.tab[i]);
+				tf_A.setText("");
+				tf_E.setText("");
+				tf_C.setText("");
+				tf_G.setText("");
+			} else {
+				for (int i=0; i<originData.tab.length; i++) {
+					System.out.println("tab["+i+"]="+ originData.tab[i] );
+					if (originData.tab[i].indexOf("G") >= 0) {
+						tf_G.setText(originData.tab[i].substring(1) );
+					} else if (originData.tab[i].indexOf("C") >= 0) {
+						tf_C.setText(originData.tab[i].substring(1) );
+					} else if (originData.tab[i].indexOf("E") >= 0) {
+						tf_E.setText(originData.tab[i].substring(1) );
+					} else if (originData.tab[i].indexOf("A") >= 0) {
+						tf_A.setText(originData.tab[i].substring(1) );
 					} else {
 						System.err.println("Something Wrong in 'originData.tab[]' " + originData.tab[i] );
 					}
 				}
 			}
 			tfTechnics.setText(originData.technic);
-
 			System.out.println("originData-> TS:" + originData.timeStamp + ", lyric:" + originData.lyric + ", chord:" + originData.chordName + ", tab:" + originData.tab );
 //		}
 		repaint();
@@ -315,13 +324,13 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		originData.timeStamp = (int)spnrTimeStamp.getValue();
 		originData.lyric = tfLyric.getText();
 		originData.chordName = cbChords.getName();
-		if (originData.tab ==null) {
-			originData.tab = new String[4];
-		}
-		originData.tab[0] = tf_A.getText();
-		originData.tab[1] = tf_E.getText();
-		originData.tab[2] = tf_C.getText();
-		originData.tab[3] = tf_G.getText();
+//		if (originData.tab ==null) {
+		originData.tab = new String[4];
+//		}
+		originData.tab[0] = "A"+tf_A.getText();
+		originData.tab[1] = "E"+tf_E.getText();
+		originData.tab[2] = "C"+tf_C.getText();
+		originData.tab[3] = "G"+tf_G.getText();
 		originData.technic = tfTechnics.getText();
 
 		System.out.println("originData-> TS:" + originData.timeStamp + ", lyric:" + originData.lyric + ", chord:" + originData.chordName + ", tab:" + originData.tab );
