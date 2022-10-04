@@ -4,8 +4,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.JSpinner;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -22,8 +24,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 
 public class NoteInputDlg extends JDialog implements ActionListener,PropertyChangeListener, KeyListener  {
@@ -253,7 +257,22 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		);
 		getContentPane().setLayout(groupLayout);
 
-		addKeyListener(this);
+		getContentPane().addKeyListener(this);
+
+		/* ESC 키 처리 할 수 있게..  TODO: 기왕이면 Ctrl+ENTER 키에 의해 입력완료 할 수 있도록. */
+		tfLyric.addKeyListener(this);
+		tf_A.addKeyListener(this);
+		tf_E.addKeyListener(this);
+		tf_C.addKeyListener(this);
+		tf_G.addKeyListener(this);
+		tfTechnics.addKeyListener(this);
+		spnrTimeStamp.addKeyListener(this);
+
+	    /*  this.getRootPane().registerKeyboardAction(this,
+	            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+	            JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    */
+
 	}
 
 	@Override
@@ -358,16 +377,24 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	@Override
 	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		System.out.println("KeyTyped : "+ e);
-		if (e.getKeyCode() == KEYCODE_ESC ) {
-			dispose();
-		}
+		//System.out.println("KeyTyped : keyCode="+ e.getKeyCode()  + ", e="+e);
+		//if (e.getKeyCode() == KEYCODE_ESC ) {
+		//	dispose();
+		//}
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
+	     //String s = e.getKeyText(e.getKeyCode()); // 키값
+	     //System.out.println("입력된 키 :" + s + "키가 눌렸습니다.");
+	     if(e.getKeyChar() == KeyEvent.VK_ESCAPE ){ 
+			retValue = CANCEL_OPTION;
+			dispose();
+	     } else if (e.getKeyChar() == KeyEvent.VK_ENTER ){
+			retValue = OK_OPTION;
+			dispose();
+	     }
 	}
 
 	@Override

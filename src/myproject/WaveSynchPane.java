@@ -784,16 +784,6 @@ public class WaveSynchPane extends JPanel
 			note_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
 		}
 
-		//System.out.println("before Dialog- TS:"+ uke_data.notes[note_index].timeStamp+ ", chord:" + uke_data.notes[note_index].chordName + ", tab:"+uke_data.notes[note_index].tab );
-		//if (uke_data.notes[note_index].tab != null) {
-		//	System.out.print("\t tab:");
-		//	String tab_str[] = uke_data.notes[note_index].tab; 
-		//	for (int i=0; i<tab_str.length; i++) {
-		//		System.out.print(", "+tab_str[i] );
-		//	}
-		//	System.out.println("\t");
-		//}
-
 		editNote.setData(uke_data.notes[note_index]);
 		editNote.setSize(352, 356);
 
@@ -808,39 +798,6 @@ public class WaveSynchPane extends JPanel
 		}
 		System.err.println("showDialog returns ." + result );
 		repaint();
-
-/*		
-		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
-			sample_index = (int)((samples_per_pixel*x)+start_index);
-			xs = (int)((float)sample_index/samples_per_quaver);
-			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
-			if (index < 0) {
-				System.err.println("No note data. wanna new ?? : msec=" + (xs*samples_per_quaver*1000)/sample_rate );
-
-				String lyricInput = null;
-				lyricInput = JOptionPane.showInputDialog(null, "새로운 가사입력", lyricInput );
-	            if (lyricInput != null) {
-//	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
-	            	int new_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
-	            	uke_data.notes[new_index].lyric = lyricInput;		// 새로운 가사를 넣어 줌. 
-	    			repaint();
-	            }
-			} else {
-				String lyricInput = uke_data.notes[index].lyric;
-				lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );
-	            if (lyricInput != null) {
-	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
-	    			uke_data.notes[index].lyric = lyricInput;
-	    			repaint();
-	            }
-			}
-		} else {
-			sample_index = (int)((samples_per_pixel*x)+start_index);
-			xs = (int)((float)sample_index/samples_per_quaver);
-			System.out.println("start="+sample_index+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
-		}
-*/
 	}
 
 	public void mousePressed(MouseEvent e) {
