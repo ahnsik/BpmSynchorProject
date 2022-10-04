@@ -22,14 +22,17 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.ActionEvent;
 
-public class NoteInputDlg extends JDialog implements ActionListener,PropertyChangeListener {
+public class NoteInputDlg extends JDialog implements ActionListener,PropertyChangeListener, KeyListener  {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private static final int KEYCODE_ESC = 27;
 	public static final int OK_OPTION = 0;
 	public static final int CANCEL_OPTION = -2;
 
@@ -41,10 +44,10 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	private JTextField tfTechnics;
 
 	private JSpinner spnrTimeStamp; 
-	private JComboBox cbChords;
 
 	private static Note		originData;
 	private int retValue = CANCEL_OPTION;
+	private JTextField tfChordName;
 
 	public NoteInputDlg(JFrame owner, String title) {
 		super(owner, title);
@@ -66,9 +69,6 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		tfLyric.setColumns(10);
 		
 		JLabel lblChord = new JLabel("코드");
-
-		cbChords = new JComboBox();
-		cbChords.setModel(new DefaultComboBoxModel(new String[] {"C", "Am", "F", "G", "G7", "E7", "Bb", ""}));
 
 		JLabel lbl_A = new JLabel("A");
 		lbl_A.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -125,6 +125,16 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		JCheckBox chkDelete = new JCheckBox("이 음을 삭제");
 		
 		JButton btnChordAuto = new JButton("자동음지정");
+		btnChordAuto.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//String chord = tfChordName.getText();
+				//if ()
+				////// TODO: 코드 테이블을 만들고 테이블을 검색하여 G, C, E, A 의 연주값을 자동으로 입력하게 해 줄 것.
+			}
+		});
+		
+		tfChordName = new JTextField();
+		tfChordName.setColumns(10);
 		GroupLayout groupLayout = new GroupLayout(getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
@@ -158,10 +168,10 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 										.addComponent(lbllyric)
 										.addComponent(lblChord))
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-										.addComponent(cbChords, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(tfLyric))))
-							.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+									.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+										.addComponent(tfChordName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(tfLyric, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+							.addPreferredGap(ComponentPlacement.RELATED, 28, Short.MAX_VALUE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addContainerGap()
 							.addComponent(lblTimeStamp)
@@ -180,7 +190,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 									.addComponent(lblMsec, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE))
 								.addGroup(groupLayout.createSequentialGroup()
 									.addPreferredGap(ComponentPlacement.RELATED)
-									.addComponent(chkDelete, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+									.addComponent(chkDelete, GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE)))
 							.addGap(12))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(btnChordAuto)
@@ -206,9 +216,9 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 						.addComponent(tfLyric, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(cbChords, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(lblChord)
-						.addComponent(btnChordAuto))
+						.addComponent(btnChordAuto)
+						.addComponent(tfChordName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addGap(8)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(tf_A, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -233,7 +243,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblTechnics)
 						.addComponent(tfTechnics, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
 					.addComponent(chkDelete)
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
@@ -242,6 +252,8 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 					.addContainerGap())
 		);
 		getContentPane().setLayout(groupLayout);
+
+		addKeyListener(this);
 	}
 
 	@Override
@@ -290,7 +302,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 
 			spnrTimeStamp.setValue( originData.timeStamp );
 			tfLyric.setText(originData.lyric);
-			cbChords.setName(originData.chordName);
+			tfChordName.setText(originData.chordName);
 			if (originData.tab == null) {
 				System.out.println("tab is NULL" );
 				originData.tab = new String[4];
@@ -323,7 +335,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	public Note getData() {
 		originData.timeStamp = (int)spnrTimeStamp.getValue();
 		originData.lyric = tfLyric.getText();
-		originData.chordName = cbChords.getName();
+		originData.chordName = tfChordName.getText();
 //		if (originData.tab ==null) {
 		originData.tab = new String[4];
 //		}
@@ -343,4 +355,24 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		return 	retValue;
 	}
 
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println("KeyTyped : "+ e);
+		if (e.getKeyCode() == KEYCODE_ESC ) {
+			dispose();
+		}
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 }

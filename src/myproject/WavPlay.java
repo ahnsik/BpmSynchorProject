@@ -199,7 +199,6 @@ public class WavPlay extends Thread {
 
 	public void setPlayingPosition(int position) {
 		// TODO Auto-generated method stub
-			System.out.println("Ready 안됐나 보네.. 아마도 평생 그럴꺼야.. ㅏ바하ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ");
 		playing_position /= 2;
 	}
 

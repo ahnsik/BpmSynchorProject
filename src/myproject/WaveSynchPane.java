@@ -441,8 +441,10 @@ public class WaveSynchPane extends JPanel
 					int timeStamp = (int) uke_data.notes[j].timeStamp;
 					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
 						g.drawRect( x+i, y, 12, FONT_HEIGHT );
-						g.drawString( uke_data.notes[j].chordName, x+i, y+FONT_HEIGHT );
-						System.out.println("drawing.. chordName="+uke_data.notes[j].chordName );
+						if (uke_data.notes[j].chordName != null) {
+							g.drawString( uke_data.notes[j].chordName, x+i, y+FONT_HEIGHT );
+						}
+//						System.out.println("drawing.. chordName="+uke_data.notes[j].chordName );
 					}
 				}
 
@@ -495,31 +497,48 @@ public class WaveSynchPane extends JPanel
 		g.drawString("E", x-16, y+16+32);
 		g.drawString("A", x-16, y+16+48);
 
-		int i, j;
-		boolean grid, quaver_grid;
-
 		g.setColor(Color.DARK_GRAY);
 		g.fillRect(x, y+9   , w-1, 2);		// G
 		g.fillRect(x, y+9+16, w-1, 2);		// C
 		g.fillRect(x, y+9+32, w-1, 2);		// E
 		g.fillRect(x, y+9+48, w-1, 2);		// A
 
-		for (i=0; i<w; i++) {
-			int start = ((samples_per_pixel*i)+start_index);
-			int end = ((samples_per_pixel*(i+1))+start_index);
-			grid=false;
-			quaver_grid = false;
+ 		int i, j, start, end;
 
-			if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
-				grid=true;
-			}
-			if (((end/(int)samples_per_quaver)%quaver_mode)==0 ) {
-				quaver_grid = true;
+ 		if (uke_data == null)
+			return;
+		if (uke_data.notes == null)
+			return;
+
+		for (i=0; i<w; i++) {
+			start = ((samples_per_pixel*i)+start_index);
+			end = (int)(start+samples_per_quaver);	
+
+			if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+				int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
+				for (j=0; j<uke_data.notes.length; j++) {
+					int timeStamp = (int) uke_data.notes[j].timeStamp;
+					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
+//						g.drawRect( x+i, y, 12, FONT_HEIGHT );
+						if (uke_data.notes[j].tab != null) {
+							for (int t=0; t<uke_data.notes[j].tab.length; t++) {
+								if (uke_data.notes[j].tab[t].indexOf("G")>=0 ) {
+									g.drawString( uke_data.notes[j].tab[t].substring(1), x+i, y+FONT_HEIGHT +16*3 );
+								} else if (uke_data.notes[j].tab[t].indexOf("C")>=0 ) {
+									g.drawString( uke_data.notes[j].tab[t].substring(1), x+i, y+FONT_HEIGHT +16*2 );
+								} else if (uke_data.notes[j].tab[t].indexOf("E")>=0 ) {
+									g.drawString( uke_data.notes[j].tab[t].substring(1), x+i, y+FONT_HEIGHT +16*1 );
+								} else if (uke_data.notes[j].tab[t].indexOf("A")>=0 ) {
+									g.drawString( uke_data.notes[j].tab[t].substring(1), x+i, y+FONT_HEIGHT  );
+								}
+							}
+							
+						}
+
+					}
+				}
 			}
 			
-			if (grid && quaver_grid) {
-				g.fillRect(x+i-2, y+9, 2, 50);
-			}
 		}
 
 	}
@@ -530,6 +549,31 @@ public class WaveSynchPane extends JPanel
 		g.setColor(Color.DARK_GRAY);
 		int strWidth=g.getFontMetrics().stringWidth(label);
 		g.drawString(label, x-strWidth, y+h/2);
+		
+	 	int i, j, start, end;
+		if (uke_data == null)
+			return;
+		if (uke_data.notes == null)
+			return;
+		for (i=0; i<w; i++) {
+			start = ((samples_per_pixel*i)+start_index);
+			end = (int)(start+samples_per_quaver);	
+
+			if ( (start%(int)samples_per_quaver) < samples_per_pixel) {			// grid 경계부분 판단. -		//  if ((start/(int)samples_per_quaver)!=(end/(int)samples_per_quaver)) {
+				int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
+
+				for (j=0; j<uke_data.notes.length; j++) {
+					int timeStamp = (int) uke_data.notes[j].timeStamp;
+					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
+						g.drawRect( x+i, y, 12, FONT_HEIGHT );
+						if (uke_data.notes[j].technic != null) {
+							g.drawString( uke_data.notes[j].technic, x+i, y+FONT_HEIGHT );
+						}
+					}
+				}
+
+			}
+		}
 
 	}
 
