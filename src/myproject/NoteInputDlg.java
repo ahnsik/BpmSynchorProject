@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 
@@ -39,6 +40,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	private static final int KEYCODE_ESC = 27;
 	public static final int OK_OPTION = 0;
 	public static final int CANCEL_OPTION = -2;
+	public static final int DELETE_OPTION = -3;
 
 	private JTextField tfLyric;
 	private JTextField tf_A;
@@ -52,6 +54,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	private static Note		originData;
 	private int retValue = CANCEL_OPTION;
 	private JTextField tfChordName;
+	private JCheckBox chkDelete; 
 
 	public NoteInputDlg(JFrame owner, String title) {
 		super(owner, title);
@@ -113,8 +116,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		JButton btnOK = new JButton("입력 확인");
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				retValue = OK_OPTION;
-				dispose();
+				Ok_And_Dispose();
 			}
 		});
 		
@@ -126,7 +128,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 			}
 		});
 		
-		JCheckBox chkDelete = new JCheckBox("이 음을 삭제");
+		chkDelete = new JCheckBox("이 음을 삭제");
 		
 		JButton btnChordAuto = new JButton("자동음지정");
 		btnChordAuto.addActionListener(new ActionListener() {
@@ -260,19 +262,37 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		getContentPane().addKeyListener(this);
 
 		/* ESC 키 처리 할 수 있게..  TODO: 기왕이면 Ctrl+ENTER 키에 의해 입력완료 할 수 있도록. */
+		spnrTimeStamp.addKeyListener(this);
 		tfLyric.addKeyListener(this);
 		tf_A.addKeyListener(this);
 		tf_E.addKeyListener(this);
 		tf_C.addKeyListener(this);
 		tf_G.addKeyListener(this);
 		tfTechnics.addKeyListener(this);
-		spnrTimeStamp.addKeyListener(this);
+		btnOK.addKeyListener(this);
+		btnCancel.addKeyListener(this);
 
 	    /*  this.getRootPane().registerKeyboardAction(this,
 	            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 	            JComponent.WHEN_IN_FOCUSED_WINDOW);
 	    */
+	    this.getRootPane().registerKeyboardAction(this,
+	            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+	            JComponent.WHEN_IN_FOCUSED_WINDOW);
 
+	    addWindowListener(new WindowAdapter(){ 
+    	  public void windowOpened( WindowEvent e){ 
+    	    tfLyric.requestFocus();
+    	  } 
+	  	});     
+	}
+
+	private void Ok_And_Dispose() {
+		if (chkDelete.isSelected() ) {
+			retValue = DELETE_OPTION;
+		}
+		retValue = OK_OPTION;
+		dispose();
 	}
 
 	@Override
@@ -286,7 +306,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	/*	if (e.getSource() instanceof JButton) {
             JButton button = (JButton) e.getSource();
             if(button.getText() != "OK"){
-        		retValue = OK_OPTION;
+				Ok_And_Dispose();
             } else if(button.getText() != "CANCEL") {
         		retValue = CANCEL_OPTION;
             }
@@ -392,8 +412,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 			retValue = CANCEL_OPTION;
 			dispose();
 	     } else if (e.getKeyChar() == KeyEvent.VK_ENTER ){
-			retValue = OK_OPTION;
-			dispose();
+	    	 Ok_And_Dispose();
 	     }
 	}
 
