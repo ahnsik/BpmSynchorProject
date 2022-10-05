@@ -563,6 +563,10 @@ public class WaveSynchPane extends JPanel
 				int start_msec = start*1000 / sample_rate, end_msec = end*1000 / sample_rate;
 
 				for (j=0; j<uke_data.notes.length; j++) {
+					if (uke_data.notes[j] == null) {
+						System.err.println("uke_data.notes["+j+"] is null !!");
+						continue;
+					}
 					int timeStamp = (int) uke_data.notes[j].timeStamp;
 					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
 						g.drawRect( x+i, y, 12, FONT_HEIGHT );
@@ -806,7 +810,9 @@ public class WaveSynchPane extends JPanel
 			// TODO:  delete this note 체크했을 때에는 해당 노드를 삭제 해야 한다.
 		} else if (result == NoteInputDlg.DELETE_OPTION ) {
 			// 여기에서는 편집하던 노드를 삭제(제거) 해야 한다. 
-			System.out.println("This note must be eliminated");
+			Note temp = editNote.getData();
+			System.err.println("This note must be eliminated. TS:"+temp.timeStamp );
+			uke_data.removeNote(temp.timeStamp);
 		} else {
 			
 		}

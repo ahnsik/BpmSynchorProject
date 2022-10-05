@@ -290,8 +290,9 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 	private void Ok_And_Dispose() {
 		if (chkDelete.isSelected() ) {
 			retValue = DELETE_OPTION;
+		} else {
+			retValue = OK_OPTION;
 		}
-		retValue = OK_OPTION;
 		dispose();
 	}
 

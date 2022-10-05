@@ -192,7 +192,7 @@ public class UkeData {
 	 */
 	public void removeNote(int msec) {
 		int i, j;
-		Note tempArray[] = new Note[notes.length];
+		Note tempArray[] = new Note[notes.length-1];
 		System.out.println("Remove from:" + msec+" msec" );
 		for (i=0; i<notes.length; i++) {
 			if (notes[i].timeStamp == msec) {
