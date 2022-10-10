@@ -97,7 +97,7 @@ public class WavPlay extends Thread {
 		// TODO Auto-generated method stub
 		System.out.println("before running.");
 	    int nBytesWritten = 0;
-	    long playing_sec = 0;
+	    int playing_sec = 0;
 
 	    byte[] abData = new byte[PLAYING_BUFFER_SIZE];
 	    
@@ -212,8 +212,8 @@ public class WavPlay extends Thread {
 		return playing_position;
 	}
 
-	public long getPlayingPositionInMilliSecond() {
-		return (((long)playing_position*1000)/(numChannels*(numBitsInSample/8)) / (sample_rate));
+	public int getPlayingPositionInMilliSecond() {
+		return ((playing_position*1000)/(numChannels*(numBitsInSample/8)) / (sample_rate));
 //		return ((playing_position*1000) / ((numChannels*(numBitsInSample/8))*(sample_rate)) );
 	}
 }

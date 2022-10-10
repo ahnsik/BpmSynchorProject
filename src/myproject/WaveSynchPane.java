@@ -110,7 +110,7 @@ public class WaveSynchPane extends JPanel
 		rulerColor = Color.LIGHT_GRAY;
 		rulerColor_H = new Color(210,210,210);
 		rulerFontColor = Color.DARK_GRAY;
-		playedWaveFormColor = Color.LIGHT_GRAY;
+		playedWaveFormColor = Color.ORANGE;			// Color.Magenta
 		waveFormColor = Color.GRAY;
 		beatBgColor = new Color(220,220,220);
 		beatBgColor_H = new Color(220,230,246);
@@ -404,7 +404,7 @@ public class WaveSynchPane extends JPanel
 
 	private void drawWave(Graphics g, int x, int y, int w, int h, byte[] data, Color c) {
 		g.setColor(c);
-		int j, value, max, min, prev_min, start, end;
+		int j, value, max, min, prev_min, start, end, played_index;
 		int offset = wave_offset * sample_rate/1000;		// msec 를 index 로 변환, sample_rate/1000 은 msec 당 sample 갯수.
 		int center_y = y;
 		int max_amplitude = h/2;
@@ -440,6 +440,10 @@ public class WaveSynchPane extends JPanel
 		if (data==null) 
 			return;
 
+//		if (player != null) {
+//			playing_position = player.getPlayingPositionInMilliSecond();
+//		}
+		played_index = player.getPlayingPosition();
 		g.setColor(Color.GRAY);
 		max=0;
 		min=255;
@@ -456,6 +460,11 @@ public class WaveSynchPane extends JPanel
 				value = data[j]&0xFF;
 				max=(max<value)?value:max;
 				min=(min>value)?value:min;
+			}
+			if (played_index > end) {
+				g.setColor(playedWaveFormColor);
+			} else {
+				g.setColor(waveFormColor);
 			}
 			g.drawLine( (x+i), center_y+ min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );
 			g.drawLine( (x+i), center_y+ prev_min*max_amplitude/128, (x+i), center_y+max*max_amplitude/128 );
