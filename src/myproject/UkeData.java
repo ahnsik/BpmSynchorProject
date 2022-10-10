@@ -117,7 +117,7 @@ public class UkeData {
 					notes[i] = new Note();
 					notes[i].timeStamp = one.getInt("timestamp");
 					notes[i].chordName = one.getString("chord");
-					System.out.println(" notes["+i+"].chordName=" + notes[i].chordName );
+//					System.out.println(" notes["+i+"].chordName=" + notes[i].chordName );
 					try {
 						notes[i].technic = one.getString("technic");
 					} catch (JSONException jsonE) {

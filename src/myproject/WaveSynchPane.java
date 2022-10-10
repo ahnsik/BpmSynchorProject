@@ -47,7 +47,7 @@ public class WaveSynchPane extends JPanel
 
 	/**	기본적으로 사용될 폰트 및 각종 색상들 배경색 포함 */
 	private static Font gridFont, labelFont, tabFont;	
-	private static Color bg_color, rulerColor, rulerColor_H, rulerFontColor, playedWaveFormColor, waveFormColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordFontColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;  
+	private static Color bg_color, rulerColor, rulerColor_H, rulerFontColor, playedWaveFormColor, waveFormColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordFontColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;
 
 	/** WAVE 파형을 그리는 데 사용될 기준 값들. WAVE 파형을 기준으로 삼아 msec 단위 (samples 갯수) 로 시간 계산을 하여 grid 크기를 결정한다.   
 	 * 	매우 중요한 변수samples_per_quaver, samples_per_pixel   
@@ -60,7 +60,7 @@ public class WaveSynchPane extends JPanel
 	 */ 
 	private String value_meter;		// = "4/4";	// '1'=2/4, '2'=3/4, '3'=4/4, '4'=6/8 
 	// 8분음표 기준인지, 16분음표 기준인지 ... <--  이거 없애고, TODO: 1 마디당 음표 갯수를 표시하는 다른 변수를 사용하도록 고칠 것.
-	private int value_beat = 0;	//	'0' = quaver(8분음표), '1'=semi-quaver(16분음표) 
+	private int quaver_bar = 8;	//	'0' = quaver(8분음표), '1'=semi-quaver(16분음표) 
 	// 연주할 음악의 Beat Per Munite 값. 값이 크면 빠르고 반응이 좋겠지만 어렵고, 값이 작으면 노래중 위치 찾기가 어렵다.
 	private float value_bpm = 80.0f;	// beats per minute.
 	// WAV파일 데이터의 녹음된 SampleRate ==>> 현재는 load 할 때 기본으로 8000Hz 로 변환해서 설정해 주고 있다. 나중엔 다양한 SampleRate 에 대응하도록 고려할 것.
@@ -148,7 +148,7 @@ public class WaveSynchPane extends JPanel
 		samples_per_pixel = 100;		// 마우스 휠 등에 의해 확대/축소되는 기준.  1픽셀 당 100개 sample로 표시.  8000Hz 샘플이므로, 1초=80 pixel 간격.
 		// 박자 값. string 으로 바꿔서 사용할 예정
 		value_meter = "4/4"; 
-		value_beat = 0;	//	나중에 삭제할 예정인 변수. 8분음표 기준인지, 16분음표 기준인지 판단용. 
+		quaver_bar = 8;	//	나중에 삭제할 예정인 변수. 8분음표 기준인지, 16분음표 기준인지 판단용. 
 		// 본격 BPM 값 
 		value_bpm = 80.0f;	// beats per minute.
 		sample_rate = 8000;
@@ -766,20 +766,27 @@ public class WaveSynchPane extends JPanel
 	public void setBpm(float bpm) {
 		System.out.println("set BPM: " + bpm);
 		value_bpm = bpm;
-		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
+		//samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
+		if (quaver_bar==8) {	//	'8' = quaver(8음표단위), '16'=semi-quaver(16분음표단위)
+			samples_per_quaver = ( ((sample_rate*60)/value_bpm) /4)*2;
+		} else {
+			samples_per_quaver = ( ((sample_rate*60)/value_bpm) /4);
+		}
+
 		maximum_start_index = (int)samples_per_quaver*quaver_mode;
 		repaint();
 	}
 
 	/**
-	 * 음악 파일의 기본 음표 크기 ( grid 1개 칸의 음표의 길이)
-	 * @param isSemiQuaver	기본음표 크기 (문자열로 지정: default='quaver', 16분음표='semi-quaver') 
+	 * 음악 파일의 기본 음표 크기 (grid 1개 칸의 음표의 길이,  8=8분음표, 16=16분음표 )
+	 * @param isSemiQuaver	기본음표 크기 ( default='8'(quaver),  '16'=(semi-quaver) ) 
 	 */
 	public void setQuaver(int isSemiQuaver) {
 		System.out.println("set Quaver: " + isSemiQuaver);
-		value_beat = isSemiQuaver;
+		//quaver_bar = (isSemiQuaver==0)? 8 : 16;
+		quaver_bar = isSemiQuaver;
 
-		if (value_beat==0) {	//	'0' = quaver(8음표단위), '1'=semi-quaver(16분음표단위)
+		if (quaver_bar==8) {	//	'8' = quaver(8음표단위), '16'=semi-quaver(16분음표단위)
 			samples_per_quaver = ( ((sample_rate*60)/value_bpm) /4)*2;
 		} else {
 			samples_per_quaver = ( ((sample_rate*60)/value_bpm) /4);
@@ -787,14 +794,14 @@ public class WaveSynchPane extends JPanel
 
 		switch(value_meter) {
 			case "2/4":		// 2/4박자
-				quaver_mode = (value_beat==0)?4:8;
+				quaver_mode = (quaver_bar==8)?4:8;
 				break;
 			case "3/4":		// 3/4박자
 			case "6/8":		// 3/4박자
-				quaver_mode = (value_beat==0)?6:12;
+				quaver_mode = (quaver_bar==8)?6:12;
 				break;
 			default:	// 기본은 4/4 박자.
-				quaver_mode = (value_beat==0)?8:16;
+				quaver_mode = (quaver_bar==8)?8:16;
 				break;
 		}
 		
@@ -811,22 +818,22 @@ public class WaveSynchPane extends JPanel
 			case 0:		// 2/4박자
 				value_meter = "2/4";
 				System.out.println("setMeter: 2/4박자.." );
-				quaver_mode = (value_beat==0)?4:8;
+				quaver_mode = (quaver_bar==8)?4:8;
 				break;
 			case 1:		// 3/4박자
 				value_meter = "3/4";
 				System.out.println("setMeter: 3/4박자.." );
-				quaver_mode = (value_beat==0)?6:12;
+				quaver_mode = (quaver_bar==8)?6:12;
 				break;
 			case 3:		// 6/8박자
 				value_meter = "6/8";
 				System.out.println("setMeter: 6/8박자.." );
-				quaver_mode = (value_beat==0)?6:12;
+				quaver_mode = (quaver_bar==8)?6:12;
 				break;
 			default:	// 4/4박자
 				value_meter = "4/4";
 				System.out.println("setMeter: 4/4박자.." );
-				quaver_mode = (value_beat==0)?8:16;
+				quaver_mode = (quaver_bar==8)?8:16;
 				break;
 		}
 		maximum_start_index = (int)samples_per_quaver*quaver_mode;
@@ -851,6 +858,7 @@ public class WaveSynchPane extends JPanel
 		player = p;
 		sample_rate = player.getSampleRate();
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
+		System.out.println("Vew.setPlayer.. player:" + player );
 	}
 	
 	/**
@@ -898,7 +906,7 @@ public class WaveSynchPane extends JPanel
 		System.out.println("WaveSynchPane KeyReleased:" + e.getKeyCode() );
 	}
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
+//		System.out.println("Mouse Wheel listener:" + e.getWheelRotation() + ", Amount:"+e.getScrollAmount() + ", type:"+e.getScrollType() );
 		viewZoom( e.getWheelRotation() );		// e.getWheelRotation() 이 1 이면 증가, -1 이면 감소.
 		repaint();
 	}
@@ -978,38 +986,6 @@ public class WaveSynchPane extends JPanel
 		System.err.println("showDialog returns ." + result );
 		repaint();
 
-/*		
-		if ( (y>lyricStart_y)&&(y<=(lyricStart_y+LYRIC_AREA_THICKNESS)) ) {
-			sample_index = (int)((samples_per_pixel*x)+start_index);
-			xs = (int)((float)sample_index/samples_per_quaver);
-			int index = findIndexWithTimestamp(sample_index*1000/sample_rate);		// index to msec 공식 : index*1000/sample_rate
-			System.err.println("lyric display Area Clicked :("+xs+"), " + (int)(xs*samples_per_quaver*1000/sample_rate) + "msec" + ", index="+index );
-			if (index < 0) {
-				System.err.println("No note data. wanna new ?? : msec=" + (xs*samples_per_quaver*1000)/sample_rate );
-
-				String lyricInput = null;
-				lyricInput = JOptionPane.showInputDialog(null, "새로운 가사입력", lyricInput );
-	            if (lyricInput != null) {
-//	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
-	            	int new_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
-	            	uke_data.notes[new_index].lyric = lyricInput;		// 새로운 가사를 넣어 줌. 
-	    			repaint();
-	            }
-			} else {
-				String lyricInput = uke_data.notes[index].lyric;
-				lyricInput = JOptionPane.showInputDialog(null, "가사입력", lyricInput );
-	            if (lyricInput != null) {
-	    			System.out.println("\"" + lyricInput + "\"" + "을 입력하였습니다.");
-	    			uke_data.notes[index].lyric = lyricInput;
-	    			repaint();
-	            }
-			}
-		} else {
-			sample_index = (int)((samples_per_pixel*x)+start_index);
-			xs = (int)((float)sample_index/samples_per_quaver);
-			System.out.println("start="+sample_index+", XS="+(int)(xs)+", WIDTH="+(int)(samples_per_quaver/samples_per_pixel)+"px" );
-		}
-*/
 	}
 
 	public void mousePressed(MouseEvent e) {

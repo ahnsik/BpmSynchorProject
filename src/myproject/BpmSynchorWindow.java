@@ -174,14 +174,11 @@ public class BpmSynchorWindow implements KeyListener {
 					System.out.println("\t>> File:"+data.mMusicUrl );
 					File mp3file =  new File(f.getParent()+"/"+data.mMusicUrl);
 
-			    	player = new WavPlay(mp3file);
 					if (waveSynchPane != null) {
-						System.out.println("View And Player linking..: view="+waveSynchPane+ "player="+player );
-						player.setView(waveSynchPane);
-						waveSynchPane.setPlayer(player);
-						setWaveData(mp3file); 
+						setWaveData(mp3file); 		// 여기에서 player 객체를 생성하고 연주를 시작한다.
 					}
 
+					System.out.println("\tCheck the player object:" + player );
 //					System.out.println("Music file path:" + f.getParent() );			// new File(f.getParent(), data.mMusicURL) );
 //			    	System.out.println("Music file set:" + f.getParent()+"/"+data.mMusicUrl );			// new File(f.getParent(), data.mMusicURL) );
 //			    	System.out.println("MP3 file. getPath()= " + mp3file.getPath() );
@@ -347,7 +344,7 @@ public class BpmSynchorWindow implements KeyListener {
 		rdbtnQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 //				JRadioButton btn=(JRadioButton)e.getSource();
-				waveSynchPane.setQuaver( 0 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( 8 );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnQuaver);
@@ -355,7 +352,7 @@ public class BpmSynchorWindow implements KeyListener {
 		JRadioButton rdbtnSemiQuaver = new JRadioButton("semi-quaver (\u266C 16\uBD84\uC74C\uD45C)");
 		rdbtnSemiQuaver.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				waveSynchPane.setQuaver( 1 );	// 1 = semi-quaver
+				waveSynchPane.setQuaver( 16 );	// 1 = semi-quaver
 			}
 		});
 		btngrpQuaver.add(rdbtnSemiQuaver);
@@ -780,6 +777,7 @@ public class BpmSynchorWindow implements KeyListener {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	protected void setWaveData(File f) {
 		byte[] Header = new byte[44];
 		byte[] Buffer = new byte[(int)f.length()];
@@ -801,17 +799,17 @@ public class BpmSynchorWindow implements KeyListener {
 			is.close();
 
 			if (player != null) {
-				player.pause();
-				player.interrupt();
+				System.out.println("need to terminate thread "); 	
+				player.stop();	//pause();
 				player = null;
 			}
-//			player = new WavPlay(Header, Buffer);
-//			if (waveSynchPane != null) {
-//				player.setView(waveSynchPane);
-//				waveSynchPane.setPlayer(player);
-//			}
-//			player.play();
-//			player.start();
+			player = new WavPlay(Header, Buffer);
+			if (waveSynchPane != null) {
+				player.setView(waveSynchPane);
+				waveSynchPane.setPlayer(player);
+			}
+			player.play();
+			player.start();
 
 			int num_of_channel = (Header[22]&0xFF)+((Header[23]&0xFF)<<8);
 			int num_bits_of_sample = (Header[34]&0xFF)+((Header[35]&0xFF)<<8);
@@ -825,20 +823,23 @@ public class BpmSynchorWindow implements KeyListener {
 					waveSynchPane.setWaveData(Buffer);
 					frmUkeBpmSynchronizer.repaint();
 					return;
-				} else {		
+				} else {
 					rawBuffer = new byte[(byteRead/block_align)];
+					System.out.println("num_bits_of_sample is not 8 " );
 					for (int i=0; i<byteRead-block_align; i+= block_align ) {
 						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);
 					}
 				}
 			} else {
 				rawBuffer = new byte[(byteRead/block_align)];
+				System.out.println("Not a mono channel " );
 				for (int i=0; i<byteRead-block_align; i+= block_align ) {
 					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);
 				}
 			}
 			if (waveSynchPane != null) {
 				waveSynchPane.setWaveData(rawBuffer);
+				System.out.println("setWaveData anyway" );
 				frmUkeBpmSynchronizer.repaint();
 			}
 		} catch (FileNotFoundException e1) {
@@ -849,7 +850,6 @@ public class BpmSynchorWindow implements KeyListener {
 	}
 
 	public File showFileDialog() {
-//		final JFileChooser fc = new JFileChooser();
 		final JFileChooser fc = new JFileChooser("C:\\\\Users\\\\as.choi\\\\eclipse-workspace\\\\BpmSynchorProject\\\\src\\\\resource");
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();

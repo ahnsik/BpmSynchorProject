@@ -147,8 +147,10 @@ public class WavPlay extends Thread {
 	}
 
 	public void play() {
+		System.out.println("Are you ready to play ?? ");
 		if (wavBuffer==null)
 			return;
+		System.out.println("Let's GO !! ");
 
 		try {
 			audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(wavBuffer));
