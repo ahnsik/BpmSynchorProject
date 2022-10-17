@@ -162,7 +162,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 				//	}
 				//}
 
-				File f = showFileDialog();
+				File f = showFileDialog("uke");
 				if (f==null) {
 					System.out.println("File Not specified.");
 					return;
@@ -202,7 +202,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		JButton btnSetWave = new JButton("Set WAVE");
 		btnSetWave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				File f = showFileDialog();
+				File f = showFileDialog("wav");
 				if (f==null) {
 					System.out.println("File Not specified.");
 					return;
@@ -215,7 +215,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		JButton btnSetAlbumImage = new JButton("Set Album Image");
 		btnSetAlbumImage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				File f = showFileDialog();
+				File f = showFileDialog("img");
 				if (f==null) {
 					System.out.println("File not specified.");
 					setAlbumImage(imgAlbumImage, ".\\src\\resource\\ukulele_icon.png");
@@ -235,7 +235,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		JButton btnWriteFile = new JButton("WriteFile");
 		btnWriteFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				File f = showFileDialog();
+				File f = showFileDialog("uke");
 //				if (f==null) {
 //					data.SaveToFile(f);
 //					System.out.println("File Not specified.");
@@ -862,12 +862,22 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		}
 	}
 
-	public File showFileDialog() {
+	public File showFileDialog(String ext) {
 		final JFileChooser fc = new JFileChooser("C:\\\\Users\\\\as.choi\\\\eclipse-workspace\\\\BpmSynchorProject\\\\src\\\\resource");
-//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Images", "jpg", "png", "gif", "bmp"));
-//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("*.pdf", "pdf"));
-//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
-		fc.addChoosableFileFilter(new FileNameExtensionFilter("*.uke", "uke"));
+//		System.out.println("FileChooser set filter.. ");
+		switch(ext) {
+			case "uke":
+				fc.setFileFilter(new FileNameExtensionFilter("*.uke files", "uke"));
+				break;
+			case "wav":
+				fc.setFileFilter(new FileNameExtensionFilter("Music file", "wav", "mp3"));
+				break;
+			case "img":
+				fc.setFileFilter(new FileNameExtensionFilter("Thumbnail file", "png", "jpg", "gif"));
+				break;
+			default:
+				break;
+		}
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
