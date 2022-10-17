@@ -119,9 +119,9 @@ public class WavPlay extends Thread {
 					viewToDraw.repaint();
 				}
 				
-			} else {		// Pause ���¿����� Thread �� ���� loop �� ��� ������ �ȵǴϱ�,  sleep ó��
+			} else {
 				try {
-					System.out.println("Thread sleeping...");
+					//System.out.println("Thread sleeping...");
 					sleep(100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -138,7 +138,11 @@ public class WavPlay extends Thread {
 
 	public void pause() {
 //		running_state = true;
-		pause_state = true;
+		//if (pause_state) {		// 이미 Pause 상태인데, 또다시 pause 하려고 하면, 아예 Thread 를 terminate 시키기로.
+		//	this.stop();
+		//} else {
+			pause_state = true;
+		//}
 	}
 
 	public void restart() {

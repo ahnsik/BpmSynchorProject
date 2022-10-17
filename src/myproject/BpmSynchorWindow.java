@@ -2,6 +2,7 @@ package myproject;
 
 import java.awt.EventQueue;
 import java.awt.Image;
+import java.awt.Point;
 import java.text.ParseException;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
@@ -18,6 +19,8 @@ import javax.swing.JOptionPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
+
+import myproject.UkeData.Note;
 
 import javax.swing.JFileChooser;
 
@@ -48,17 +51,21 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.event.ChangeEvent;
 import javax.swing.UIManager;
 import java.awt.SystemColor;
 import java.awt.event.InputMethodListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.InputMethodEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseWheelEvent;
 
-public class BpmSynchorWindow implements KeyListener {
+public class BpmSynchorWindow implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
 	private final static int	ICON_SIZE = 92;
 
@@ -410,8 +417,8 @@ public class BpmSynchorWindow implements KeyListener {
 		btnToStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("start Button Clicked.");
-				player.pause();
 				player.setPlayingPositionWithMilliSecond(0);
+				player.pause();
 			}
 		});
 
@@ -495,8 +502,14 @@ public class BpmSynchorWindow implements KeyListener {
 		spnrOffset.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
-//				waveSynchPane.setDrawStart( Integer.parseInt(""+spnrOffset.getValue()) );
 				waveSynchPane.setWaveOffset( Integer.parseInt(""+spnrOffset.getValue()) );
+			}
+		});
+		spnrOffset.addMouseWheelListener(new MouseWheelListener() {
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				int value = (int)spnrOffset.getValue();
+//				System.out.println("[spnrOffset] mouseWheelMoved() called :" + value );
+				spnrOffset.setValue(value + 10*e.getWheelRotation() );
 			}
 		});
 
@@ -624,8 +637,8 @@ public class BpmSynchorWindow implements KeyListener {
 		waveSynchPane.grabFocus();
 
 		waveSynchPane.addMouseListener(waveSynchPane);
-		waveSynchPane.addMouseWheelListener(waveSynchPane);
-		waveSynchPane.addMouseMotionListener(waveSynchPane);
+		waveSynchPane.addMouseWheelListener(this);		//waveSynchPane);
+		waveSynchPane.addMouseMotionListener(this);	//waveSynchPane);
 		waveSynchPane.addKeyListener(waveSynchPane);		// KeyListener
 		panelEditArea.add(waveSynchPane, BorderLayout.CENTER);
 
@@ -851,6 +864,10 @@ public class BpmSynchorWindow implements KeyListener {
 
 	public File showFileDialog() {
 		final JFileChooser fc = new JFileChooser("C:\\\\Users\\\\as.choi\\\\eclipse-workspace\\\\BpmSynchorProject\\\\src\\\\resource");
+//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Images", "jpg", "png", "gif", "bmp"));
+//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("*.pdf", "pdf"));
+//		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
+		fc.addChoosableFileFilter(new FileNameExtensionFilter("*.uke", "uke"));
 		fc.showOpenDialog(null);
 		return  fc.getSelectedFile();
 	}
@@ -906,4 +923,44 @@ public class BpmSynchorWindow implements KeyListener {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		JPanel clickedView = (JPanel)e.getSource();
+		if (clickedView==waveSynchPane) {
+			waveSynchPane.mouseWheelMoved(e);
+		}
+	}
+
+	public void mouseDragged(MouseEvent e) {
+		JPanel clickedView = (JPanel)e.getSource();
+		if (clickedView==waveSynchPane) {
+			System.out.println("Dragging on waveform");
+			waveSynchPane.mouseDragged(e);
+			int x = e.getX();
+			int y = e.getY();
+			spnrOffset.setValue( Float.valueOf(x) );
+		}
+	}
+	public void mouseMoved(MouseEvent e) {
+	}
+	public void mouseClicked(MouseEvent e) {
+		JPanel clickedView = (JPanel)e.getSource();
+		if (clickedView==waveSynchPane) {
+			waveSynchPane.mouseClicked(e);
+		}
+	}
+
+	public void mousePressed(MouseEvent e) {
+		JPanel clickedView = (JPanel)e.getSource();
+		if (clickedView==waveSynchPane) {
+			waveSynchPane.mousePressed(e);
+		}
+	}
+	public void mouseReleased(MouseEvent e) {
+	}
+	public void mouseEntered(MouseEvent e) {
+	}
+	public void mouseExited(MouseEvent e) {
+	}
+
 }

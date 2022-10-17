@@ -659,7 +659,11 @@ public class WaveSynchPane extends JPanel
 					if ((start_msec <= timeStamp) && (end_msec > timeStamp) ) {
 //						g.drawRect( x+i, y, 12, FONT_HEIGHT );
 						if (uke_data.notes[j].tab != null) {
+//							System.out.println("tab length:"+uke_data.notes[j].tab.length);
 							for (int t=0; t<uke_data.notes[j].tab.length; t++) {
+								if (uke_data.notes[j].tab[t]==null) {
+									continue;
+								}
 								if (uke_data.notes[j].tab[t].indexOf("G")>=0 ) {
 									g.drawString( uke_data.notes[j].tab[t].substring(1), x+i, y+16 +TAB_SPACING*3 );
 								} else if (uke_data.notes[j].tab[t].indexOf("C")>=0 ) {
@@ -929,11 +933,24 @@ public class WaveSynchPane extends JPanel
 		if (wave_data==null)
 			return;
 		
-		start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
-		if (start_index < 0)
-			start_index = 0;
-		if (start_index >= wave_data.length-maximum_start_index)
-			start_index = wave_data.length-maximum_start_index;
+		int x = e.getX()-X_OFFSET;
+		int y = e.getY();
+		int playing_index;
+		int offset_index = 0;
+		if (y<lyricStart_y) {			// WAVE 파형 부분을 드래그 하면 재생 위치를 조정할 수 있다.
+//			playing_index = (int)((samples_per_pixel*x)+start_index);
+//			player.setPlayingPosition(playing_index*1000/sample_rate );
+			offset_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
+			setWaveOffset( Integer.parseInt(""+offset_index ) );
+
+			System.out.println("Clicked Position:" + offset_index *1000/sample_rate + "msec");
+		} else {
+			start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
+			if (start_index < 0)
+				start_index = 0;
+			if (start_index >= wave_data.length-maximum_start_index)
+				start_index = wave_data.length-maximum_start_index;
+		}
 		repaint();
 	}
 	public void mouseMoved(MouseEvent e) {
@@ -947,6 +964,15 @@ public class WaveSynchPane extends JPanel
 		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );
 
+		if (y<lyricStart_y) {	// to move playing position on wave.
+//			sample_index = (int)((samples_per_pixel*x)+start_index);
+//			player.setPlayingPosition(sample_index*1000/sample_rate );
+////			playing_position = sample_index ; 
+//			System.out.println("Clicked Position:" + sample_index*1000/sample_rate + "msec");
+//			repaint();
+			return;
+		}
+		
 		sample_index = (int)((samples_per_pixel*x)+start_index);
 		xs = (int)((float)sample_index/samples_per_quaver);
 		if (uke_data.notes == null) {

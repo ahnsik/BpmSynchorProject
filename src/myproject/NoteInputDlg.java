@@ -353,6 +353,9 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 			} else {
 				for (int i=0; i<originData.tab.length; i++) {
 					System.out.println("tab["+i+"]="+ originData.tab[i] );
+					if (originData.tab[i]==null) {
+						continue;
+					}
 					if (originData.tab[i].indexOf("G") >= 0) {
 						tf_G.setText(originData.tab[i].substring(1) );
 					} else if (originData.tab[i].indexOf("C") >= 0) {
