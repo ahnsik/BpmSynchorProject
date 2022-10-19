@@ -20,6 +20,13 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.text.MaskFormatter;
 
+import javazoom.jl.decoder.Bitstream;
+import javazoom.jl.decoder.BitstreamException;
+import javazoom.jl.decoder.Decoder;
+import javazoom.jl.decoder.DecoderException;
+import javazoom.jl.decoder.Header;
+import javazoom.jl.decoder.Obuffer;
+import javazoom.jl.decoder.SampleBuffer;
 import myproject.UkeData.Note;
 
 import javax.swing.JFileChooser;
@@ -208,7 +215,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 					return;
 				}
 				System.out.println("Selected File:" + f.getPath() );
-				setWaveData(f); 
+				setMp3Data(f);					//setWaveData(f); 
 			}
 		});
 
@@ -401,8 +408,14 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
 			}
 		});
+		spnrBpm.addMouseWheelListener(new MouseWheelListener() {
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				Double value = (Double)spnrBpm.getValue();
+				spnrBpm.setValue(value + e.getWheelRotation() );
+			}
+		});
 		spnrBpm.setModel(new SpinnerNumberModel(60.0f, 20.0f, 280.0f, 1.0f));
-		
+
 		JLabel lblCategory = new JLabel("Category:");
 		
 		JComboBox cbCategory = new JComboBox();
@@ -722,6 +735,83 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
     }
 
 	protected void setMp3Data(File f) {
+//	    try {
+//			Bitstream bitStream = new Bitstream(new FileInputStream(f));
+//			boolean condition = true;
+//		    Decoder decoder = new Decoder();
+//		    while(condition){
+//				Obuffer samples = decoder.decodeFrame(bitStream.readFrame(), bitStream);
+//			    bitStream.closeFrame();
+//			}
+//		} catch (DecoderException | BitstreamException e) {
+//			e.printStackTrace();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+        short[] pcmOut = {};
+        Bitstream bitStream = null;
+        boolean done = false;
+		try {
+			bitStream = new Bitstream(new FileInputStream(f));
+	        while (!done) {
+	            Header frameHeader = bitStream.readFrame();
+	            if (frameHeader == null) {
+	                done = true;
+	            } else {
+	                Decoder decoder = new Decoder();
+	                SampleBuffer output = (SampleBuffer) decoder.decodeFrame(bitStream.readFrame(), bitStream); //returns the next 2304 samples
+	                short[] next = output.getBuffer();
+//	                pcmOut = concatArrays(pcmOut, next);
+	                int new_length = pcmOut.length + next.length; 
+	                short[] new_pcmOut = new short[new_length];
+					if (next.length != 0) {
+					    System.arraycopy(pcmOut, 0, new_pcmOut, 0, pcmOut.length );
+					    System.arraycopy(next, 0, new_pcmOut, pcmOut.length, next.length );
+					    pcmOut = new_pcmOut;
+					}
+	                //do whatever with your samples
+	            }
+	            bitStream.closeFrame();
+	        }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BitstreamException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (DecoderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        System.out.println("SAMPLES:" + pcmOut.length + " bytes." );
+		if (waveSynchPane != null) {
+			byte[] rawBuffer = new byte[pcmOut.length];
+			for (int i=0; i<pcmOut.length; i++ ) {
+				rawBuffer[i] = (byte) (pcmOut[i]/256 ); 
+			}
+			waveSynchPane.setWaveData(rawBuffer);
+			System.out.println("setWaveData anyway" );
+			frmUkeBpmSynchronizer.repaint();
+
+//			if (player != null) {
+//				System.out.println("need to terminate thread "); 	
+//				player.stop();	//pause();
+//				player = null;
+//			}
+//			player = new WavPlay(Header, Buffer);
+//			if (waveSynchPane != null) {
+//				player.setView(waveSynchPane);
+//				waveSynchPane.setPlayer(player);
+//			}
+//			player.play();
+//			player.start();
+
+		}
+        
+	/*
 //		setWaveData(f);
         try {
 //			AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(f);
@@ -787,7 +877,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
+	*/
 	}
 
 	@SuppressWarnings("deprecation")
@@ -864,7 +954,6 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 
 	public File showFileDialog(String ext) {
 		final JFileChooser fc = new JFileChooser("C:\\\\Users\\\\as.choi\\\\eclipse-workspace\\\\BpmSynchorProject\\\\src\\\\resource");
-//		System.out.println("FileChooser set filter.. ");
 		switch(ext) {
 			case "uke":
 				fc.setFileFilter(new FileNameExtensionFilter("*.uke files", "uke"));

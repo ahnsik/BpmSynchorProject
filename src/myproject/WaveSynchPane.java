@@ -47,7 +47,8 @@ public class WaveSynchPane extends JPanel
 
 	/**	기본적으로 사용될 폰트 및 각종 색상들 배경색 포함 */
 	private static Font gridFont, labelFont, tabFont;	
-	private static Color bg_color, rulerColor, rulerColor_H, rulerFontColor, playedWaveFormColor, waveFormColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordFontColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;
+	private static Color bg_color, rulerColor, rulerColor_H, rulerFontColor, beatBgColor, beatBgColor_H, lyricAreaColor, lyricAreaColor_H, chordAreaColor, chordFontColor, chordAreaColor_H, technicAreaColor, technicAreaColor_H;
+	private static Color playedWaveFormColor, waveFormColor;
 
 	/** WAVE 파형을 그리는 데 사용될 기준 값들. WAVE 파형을 기준으로 삼아 msec 단위 (samples 갯수) 로 시간 계산을 하여 grid 크기를 결정한다.   
 	 * 	매우 중요한 변수samples_per_quaver, samples_per_pixel   
@@ -443,7 +444,11 @@ public class WaveSynchPane extends JPanel
 //		if (player != null) {
 //			playing_position = player.getPlayingPositionInMilliSecond();
 //		}
-		played_index = player.getPlayingPosition();
+		if (player!=null) {
+			played_index = player.getPlayingPosition();
+		} else {
+			played_index = 0;
+		}
 		g.setColor(Color.GRAY);
 		max=0;
 		min=255;
@@ -932,8 +937,8 @@ public class WaveSynchPane extends JPanel
 			return;
 		if (wave_data==null)
 			return;
-		
-		int x = e.getX()-X_OFFSET;
+
+/*		int x = e.getX()-X_OFFSET;
 		int y = e.getY();
 		int playing_index;
 		int offset_index = 0;
@@ -945,12 +950,12 @@ public class WaveSynchPane extends JPanel
 
 			System.out.println("Clicked Position:" + offset_index *1000/sample_rate + "msec");
 		} else {
-			start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
+*/			start_index = prev_start_index - (e.getX()-mousePt.x)*samples_per_pixel ;
 			if (start_index < 0)
 				start_index = 0;
 			if (start_index >= wave_data.length-maximum_start_index)
 				start_index = wave_data.length-maximum_start_index;
-		}
+//		}
 		repaint();
 	}
 	public void mouseMoved(MouseEvent e) {
