@@ -215,7 +215,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 					return;
 				}
 				System.out.println("Selected File:" + f.getPath() );
-				setMp3Data(f);					//setWaveData(f); 
+				setWaveData(f);				// setMp3Data(f);					// 
 			}
 		});
 
@@ -462,6 +462,27 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		tfJumpToFormatted.addMouseWheelListener(new MouseWheelListener() {
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				System.out.println("[tfJumpTo] mouseWheelMoved() called");
+				String jumpToMsecStr = tfJumpToFormatted.getText();
+				try (Scanner timeStr = new Scanner(jumpToMsecStr)) {
+					timeStr.useDelimiter(":");
+					int min = timeStr.nextInt();
+					int sec = timeStr.nextInt();
+					int msec = timeStr.nextInt();
+					System.out.println("min: "+ min + " minutes "+sec+" seconds "+msec+" milli-sec.");
+					msec = min*60000+sec*1000+msec;
+					msec += 500 * e.getWheelRotation();
+					msec = (msec < 0) ? 0 : msec; 
+					player.setPlayingPositionWithMilliSecond(msec);
+					waveSynchPane.repaint();
+					min = (msec/1000) / 60;
+					sec = (msec/1000) % 60;
+					msec = msec % 1000;
+					jumpToMsecStr = "" + min + ":" + sec + ":" + msec ;
+					tfJumpToFormatted.setText(jumpToMsecStr);
+					System.out.println("Change to " + jumpToMsecStr );
+				} catch (NoSuchElementException e3) {
+//					int result = JOptionPane.showConfirmDialog(null, "이동위치를 다음과 같은 형식으로 입력해 주세요.\n MM : SS : msec", "입력형식 오류", JOptionPane.OK_OPTION);
+				}
 			}
 		});
 		tfJumpToFormatted.addActionListener(new ActionListener() {
@@ -735,20 +756,6 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
     }
 
 	protected void setMp3Data(File f) {
-//	    try {
-//			Bitstream bitStream = new Bitstream(new FileInputStream(f));
-//			boolean condition = true;
-//		    Decoder decoder = new Decoder();
-//		    while(condition){
-//				Obuffer samples = decoder.decodeFrame(bitStream.readFrame(), bitStream);
-//			    bitStream.closeFrame();
-//			}
-//		} catch (DecoderException | BitstreamException e) {
-//			e.printStackTrace();
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 
         short[] pcmOut = {};
         Bitstream bitStream = null;
@@ -763,12 +770,18 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	                Decoder decoder = new Decoder();
 	                SampleBuffer output = (SampleBuffer) decoder.decodeFrame(bitStream.readFrame(), bitStream); //returns the next 2304 samples
 	                short[] next = output.getBuffer();
-//	                pcmOut = concatArrays(pcmOut, next);
+	                //pcmOut = concatArrays(pcmOut, next);
 	                int new_length = pcmOut.length + next.length; 
 	                short[] new_pcmOut = new short[new_length];
 					if (next.length != 0) {
+//				        System.out.println("Copying arrays..." + pcmOut.length + " + " + next.length + " bytes" );
 					    System.arraycopy(pcmOut, 0, new_pcmOut, 0, pcmOut.length );
 					    System.arraycopy(next, 0, new_pcmOut, pcmOut.length, next.length );
+//						for (int i=0; i<next.length; i++ ) {
+//							System.out.print(next[i]);
+//							System.out.print(" ");
+//						}
+//						System.out.println(".");
 					    pcmOut = new_pcmOut;
 					}
 	                //do whatever with your samples
@@ -776,13 +789,10 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	            bitStream.closeFrame();
 	        }
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BitstreamException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (DecoderException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -791,6 +801,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 			byte[] rawBuffer = new byte[pcmOut.length];
 			for (int i=0; i<pcmOut.length; i++ ) {
 				rawBuffer[i] = (byte) (pcmOut[i]/256 ); 
+//					System.out.print(rawBuffer[i]);
 			}
 			waveSynchPane.setWaveData(rawBuffer);
 			System.out.println("setWaveData anyway" );

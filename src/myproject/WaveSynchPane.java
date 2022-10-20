@@ -933,6 +933,11 @@ public class WaveSynchPane extends JPanel
 	private static int prev_start_index;
 
 	public void mouseDragged(MouseEvent e) {
+		int x = e.getX()-X_OFFSET;
+		//int y = e.getY();
+		if (x<0)
+			return;
+
 		if (mousePt==null)
 			return;
 		if (wave_data==null)
@@ -961,20 +966,23 @@ public class WaveSynchPane extends JPanel
 	public void mouseMoved(MouseEvent e) {
 	}
 	public void mouseClicked(MouseEvent e) {
+		int x = e.getX()-X_OFFSET;
+		int y = e.getY();
+		if (x<0)
+			return;
 		int sample_index, xs;
 		int note_index = -1;
 		samples_per_quaver = (float)(sample_rate*60) / (float)(2*value_bpm);		// 8분음표 1개의 길이.
 		samples_per_pixel = 100;		// 24는 8분음표 1개에 해당하는 grid 크기.
-		int x = e.getX()-X_OFFSET;
-		int y = e.getY();
 		System.out.println("clicked=("+x+", "+y+")" );
 
 		if (y<lyricStart_y) {	// to move playing position on wave.
-//			sample_index = (int)((samples_per_pixel*x)+start_index);
-//			player.setPlayingPosition(sample_index*1000/sample_rate );
-////			playing_position = sample_index ; 
-//			System.out.println("Clicked Position:" + sample_index*1000/sample_rate + "msec");
-//			repaint();
+			sample_index = (int)((samples_per_pixel*x)+start_index);
+			int clicked_msec = sample_index*1000/sample_rate;
+			player.setPlayingPositionWithMilliSecond(clicked_msec  );
+			//player.setPlayingPosition(sample_index);
+			System.out.println("Clicked Position:" + clicked_msec + "msec");
+			repaint();
 			return;
 		}
 		
@@ -991,7 +999,7 @@ public class WaveSynchPane extends JPanel
 
 		NoteInputDlg  editNote = new NoteInputDlg( null, "연주음 편집");
 
-		if (note_index < 0 ) {
+		if (note_index < 0 ) {		// TODO: 여기에서 새로 만들어 버리면, 만약 ESC 로 입력 취소할 때에는 null 노드가 추가되므로 개선해야 한다. 
 			note_index = uke_data.appendNote( (int)((xs*samples_per_quaver*1000)/sample_rate) );		// msec 위치를 계산해서 새로운 노드 추가.
 		}
 
@@ -1021,7 +1029,6 @@ public class WaveSynchPane extends JPanel
 			System.err.println("This note must be eliminated. TS:"+temp.timeStamp );
 			uke_data.removeNote(temp.timeStamp);
 		} else {
-			
 		}
 		System.err.println("showDialog returns ." + result );
 		repaint();
