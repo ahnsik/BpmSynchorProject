@@ -264,6 +264,7 @@ public class NoteInputDlg extends JDialog implements ActionListener,PropertyChan
 		/* ESC 키 처리 할 수 있게..  TODO: 기왕이면 Ctrl+ENTER 키에 의해 입력완료 할 수 있도록. */
 		spnrTimeStamp.addKeyListener(this);
 		tfLyric.addKeyListener(this);
+		tfChordName.addKeyListener(this);
 		tf_A.addKeyListener(this);
 		tf_E.addKeyListener(this);
 		tf_C.addKeyListener(this);

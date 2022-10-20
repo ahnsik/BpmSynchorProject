@@ -978,7 +978,7 @@ public class WaveSynchPane extends JPanel
 
 		if (y<lyricStart_y) {	// to move playing position on wave.
 			sample_index = (int)((samples_per_pixel*x)+start_index);
-			int clicked_msec = sample_index*1000/sample_rate;
+			int clicked_msec = sample_index*1000/sample_rate + wave_offset;
 			player.setPlayingPositionWithMilliSecond(clicked_msec  );
 			//player.setPlayingPosition(sample_index);
 			System.out.println("Clicked Position:" + clicked_msec + "msec");

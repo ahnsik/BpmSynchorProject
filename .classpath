@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="miglayout15-swing.jar" sourcepath="miglayout-src.zip"/>
 	<classpathentry kind="lib" path="C:/Users/as.choi/eclipse-workspace/BpmSynchorProject/libs/json.jar"/>
 	<classpathentry kind="lib" path="C:/Users/as.choi/eclipse-workspace/BpmSynchorProject/libs/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/as.choi/eclipse-workspace/BpmSynchorProject/libs/jlayer-1.0.1-1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
