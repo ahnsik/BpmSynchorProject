@@ -226,12 +226,15 @@ public class UkeData {
 		JSONObject writeObj = new JSONObject();
 		try {
 			writeObj.put("version", version);
+System.out.println("WAV file:" + mMusicUrl );
 			writeObj.put("source", mMusicUrl);
 			writeObj.put("thumbnail", mThumbnailUrl);
+System.out.println("Sont Title:" + mSongTitle );
 			writeObj.put("title", mSongTitle);
 			writeObj.put("category", mCategory);
 			writeObj.put("author", mAuthor);
 			writeObj.put("comment", mCommentary);
+System.out.println("comment:" + mCommentary );
 			writeObj.put("basic_beat", mBasicMeter);
 			writeObj.put("start_offset", mStartOffset);
 //			writeObj.put("level", mLevel);
@@ -273,6 +276,7 @@ public class UkeData {
 			e1.printStackTrace();
 		}
 
+		System.out.println("ready to write file:");
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(f));
 //			System.out.println("File Open Error. !!!");

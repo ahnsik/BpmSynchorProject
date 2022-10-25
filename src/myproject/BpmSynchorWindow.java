@@ -2,9 +2,13 @@ package myproject;
 
 import java.awt.EventQueue;
 import java.awt.Image;
+import java.awt.Point;
 import java.text.ParseException;
+import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.regex.Pattern;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -21,6 +25,7 @@ import javazoom.jl.decoder.BitstreamException;
 import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.DecoderException;
 import javazoom.jl.decoder.Header;
+import javazoom.jl.decoder.Obuffer;
 import javazoom.jl.decoder.SampleBuffer;
 import javax.swing.JFileChooser;
 
@@ -31,6 +36,7 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -207,6 +213,8 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 					return;
 				}
 				System.out.println("Selected File:" + f.getPath() );
+				lblWaveFilePath.setText( f.getName() );
+				data.mMusicUrl = f.getName();
 				setWaveData(f);				// setMp3Data(f);					// 
 			}
 		});
@@ -311,6 +319,22 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		
 		tfComment = new JTextField();
 		tfComment.setColumns(10);
+//		tfComment.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				System.out.println("[tfComment] actionPerformed() called : " + tfComment.getText());
+//				data.mCommentary = tfComment.getText();
+//			}
+//		});
+		tfComment.addInputMethodListener(new InputMethodListener() {
+			public void caretPositionChanged(InputMethodEvent event) {
+				System.out.println("[tfComment] caretPositionChanged() called");
+				data.mCommentary = tfComment.getText();
+			}
+			public void inputMethodTextChanged(InputMethodEvent event) {
+				System.out.println("[tfComment] inputMethodTextChanged() called");
+				data.mCommentary = tfComment.getText();
+			}
+		});
 		GroupLayout gl_panelComments = new GroupLayout(panelComments);
 		gl_panelComments.setHorizontalGroup(
 			gl_panelComments.createParallelGroup(Alignment.LEADING)
@@ -339,6 +363,22 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		
 		tfSongTitle = new JTextField();
 		tfSongTitle.setColumns(10);
+//		tfSongTitle.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				System.out.println("[tfSongTitle] Song Title : " + tfSongTitle.getText());
+//				data.mSongTitle = tfSongTitle.getText();
+//			}
+//		});
+		tfSongTitle.addInputMethodListener(new InputMethodListener() {
+			public void caretPositionChanged(InputMethodEvent event) {
+				System.out.println("[tfSongTitle] caretPositionChanged() called");
+				data.mSongTitle = tfSongTitle.getText();
+			}
+			public void inputMethodTextChanged(InputMethodEvent event) {
+				System.out.println("[tfSongTitle] inputMethodTextChanged() called");
+				data.mSongTitle = tfSongTitle.getText();
+			}
+		});
 		
 		JLabel lblWaveFileName = new JLabel("WAVE File:");
 		lblWaveFilePath = new JLabel("Use [Set WAVE] button to load wave file. music file name will be shown here.");
@@ -398,6 +438,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 				System.out.println("spinner Changed Handler.."+ spnrBpm.getValue() );
 				//				spnrBpm.getNumber();
 				waveSynchPane.setBpm( Float.parseFloat(""+spnrBpm.getValue()) );
+				data.mBpm = Float.parseFloat(""+spnrBpm.getValue() );
 			}
 		});
 		spnrBpm.addMouseWheelListener(new MouseWheelListener() {
@@ -529,6 +570,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
 				waveSynchPane.setWaveOffset( Integer.parseInt(""+spnrOffset.getValue()) );
+				data.mStartOffset = (int)spnrOffset.getValue();
 			}
 		});
 		spnrOffset.addMouseWheelListener(new MouseWheelListener() {
