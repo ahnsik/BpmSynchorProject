@@ -2,13 +2,9 @@ package myproject;
 
 import java.awt.EventQueue;
 import java.awt.Image;
-import java.awt.Point;
 import java.text.ParseException;
-import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.regex.Pattern;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -25,10 +21,7 @@ import javazoom.jl.decoder.BitstreamException;
 import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.DecoderException;
 import javazoom.jl.decoder.Header;
-import javazoom.jl.decoder.Obuffer;
 import javazoom.jl.decoder.SampleBuffer;
-import myproject.UkeData.Note;
-
 import javax.swing.JFileChooser;
 
 import java.awt.Dimension;
@@ -38,7 +31,6 @@ import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;

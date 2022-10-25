@@ -1,6 +1,5 @@
 package myproject;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -26,24 +25,6 @@ public class UkeData {
 	public float mBpm;					// BPM - 분당 beat 수. (=1분당 4분음표 갯수)
 	public int numNotes;				// 전체 음표(chord) 갯수
 	public Note[] notes;
-
-	class Note {			// 음표(or chord) 1개의 데이터
-		public int	timeStamp;
-		public String	chordName;
-		public String	technic;
-		public String	tab[];			// 
-		public String	note[];		// 연주 판단할 음정 (4개까지)
-		public String	lyric;
-		
-		public void	Note() {			// 초기화 하기 위한 생성자
-			timeStamp = 0;
-			chordName = "";
-			technic = "";
-			tab = new String[0]; 
-			note = new String[0];
-			lyric = "";
-		}
-	}
 
 	public UkeData() {				// 생성자.
 		version = null;

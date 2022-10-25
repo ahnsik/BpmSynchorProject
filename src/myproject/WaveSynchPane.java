@@ -13,8 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.swing.JPanel;
-import myproject.UkeData.Note;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;

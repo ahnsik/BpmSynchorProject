@@ -16,8 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
 
-import myproject.UkeData.Note;
-
 import javax.swing.DefaultComboBoxModel;
 import java.awt.event.WindowStateListener;
 import java.beans.PropertyChangeEvent;
