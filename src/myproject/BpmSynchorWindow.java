@@ -250,6 +250,9 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 //				}
 				System.out.println("Selected Uke File:" + f.getPath() );
 				System.out.println(" -- getParent():" + f.getParent() );
+
+				data.mSongTitle = tfSongTitle.getText();
+				data.mCommentary = tfComment.getText();
 				data.SaveToFile(f);
 			}
 		});
