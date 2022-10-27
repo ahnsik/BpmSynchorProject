@@ -82,7 +82,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	private JLabel imgAlbumImage;
 	private JLabel lblWaveFilePath;
 	private JSpinner spnrBpm;
-	private JSpinner spnrOffset = new JSpinner();
+	private JSpinner spnrOffset;	// = new JSpinner();
 
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
@@ -568,7 +568,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		}
 
 		JLabel lblPlayingOffset = new JLabel("WAV offset");
-		JSpinner spnrOffset = new JSpinner();
+		spnrOffset = new JSpinner();
 		spnrOffset.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
@@ -590,7 +590,8 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 				waveSynchPane.viewZoom(-1);		// 확대
 			}
 		});
-		btnZoomIn.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
+//		btnZoomIn.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
+		btnZoomIn.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_in_small.png") );
 
 		JButton btnZoomOut = new JButton("");
 		btnZoomOut.addActionListener(new ActionListener() {
@@ -598,7 +599,8 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 				waveSynchPane.viewZoom(1);		// 축소
 			}
 		});
-		btnZoomOut.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
+//		btnZoomOut.setIcon(new ImageIcon(new ImageIcon( "C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out.png" ).getImage().getScaledInstance( 16,16, Image.SCALE_DEFAULT)) );
+		btnZoomOut.setIcon(new ImageIcon("C:\\Users\\as.choi\\eclipse-workspace\\BpmSynchorProject\\src\\resource\\zoom_out_small.png") );
 
 		GroupLayout gl_panelValueSetting = new GroupLayout(panelValueSetting);
 		gl_panelValueSetting.setHorizontalGroup(
@@ -1049,7 +1051,8 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		tfSongTitle.setText(ukedata.getSongTitle() );
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
-		spnrOffset.setValue(Float.valueOf(ukedata.mStartOffset));
+//		spnrOffset.setValue(Float.valueOf(200));
+		spnrOffset.setValue(Integer.valueOf(ukedata.mStartOffset));
 		waveSynchPane.setWaveOffset(ukedata.mStartOffset);
 	}
 
@@ -1081,7 +1084,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	public void mouseDragged(MouseEvent e) {
 		JPanel clickedView = (JPanel)e.getSource();
 		if (clickedView==waveSynchPane) {
-			System.out.println("Dragging on waveform");
+//			System.out.println("Dragging on waveform");
 			waveSynchPane.mouseDragged(e);
 			int x = e.getX();
 			int y = e.getY();
