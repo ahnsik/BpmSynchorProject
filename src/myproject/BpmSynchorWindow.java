@@ -82,7 +82,7 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	private JLabel imgAlbumImage;
 	private JLabel lblWaveFilePath;
 	private JSpinner spnrBpm;
-	private JSpinner spnrOffset;	// = new JSpinner();
+	private JSpinner spnrOffset;
 
 	private WaveSynchPane waveSynchPane;
 	private WavPlay player = null;
@@ -572,8 +572,8 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		spnrOffset.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				System.out.println("spnrOffset Changed Handler.."+ spnrOffset.getValue() );
-				waveSynchPane.setWaveOffset( Integer.parseInt(""+spnrOffset.getValue()) );
-				data.mStartOffset = (int)spnrOffset.getValue();
+				waveSynchPane.setWaveOffset( (int) Float.parseFloat(""+spnrOffset.getValue()) );
+				data.mStartOffset =  (int) Float.parseFloat(""+spnrOffset.getValue());
 			}
 		});
 		spnrOffset.addMouseWheelListener(new MouseWheelListener() {
@@ -840,7 +840,6 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 			byte[] rawBuffer = new byte[pcmOut.length];
 			for (int i=0; i<pcmOut.length; i++ ) {
 				rawBuffer[i] = (byte) (pcmOut[i]/256 ); 
-//					System.out.print(rawBuffer[i]);
 			}
 			waveSynchPane.setWaveData(rawBuffer);
 			System.out.println("setWaveData anyway" );
@@ -858,76 +857,9 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 //			}
 //			player.play();
 //			player.start();
-
+	
 		}
-        
-	/*
-//		setWaveData(f);
-        try {
-//			AudioFileFormat inputFileFormat = AudioSystem.getAudioFileFormat(f);
-//        	InputStream inputStream = getClass().getClassLoader().getResourceAsStream("C:\\Users\\as.choi\\AndroidStudioProjects\\ukulele\\tools_n_data\\itsumonandodemo.mp3");
-//        	if (inputStream == null) {
-//        		System.out.println("\t------------\n\t Error..  inputStream is NULL ----------\n\n");
-//        		return ;
-//        	}
-//        	AudioInputStream ais = AudioSystem.getAudioInputStream(inputStream);
-        	AudioInputStream ais = AudioSystem.getAudioInputStream(f);
-	        AudioFormat audioFormat = ais.getFormat();
 
-			byte[] Buffer = new byte[(int)f.length()];
-			FileInputStream is;
-			is = new FileInputStream( f );
-			int byteRead = -1;
-			byteRead = is.read(Buffer);
-			is.close();
-			
-			byte[] WavBuffer = null;
-			try {
-				WavBuffer = getAudioDataBytes(Buffer, audioFormat );
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			System.out.println("WAVFILE:"+ WavBuffer[0]+" "+ WavBuffer[1]+" "+ WavBuffer[2]+" "+ WavBuffer[3]+" "+ WavBuffer[4]+" "+ WavBuffer[5]+" "+ WavBuffer[6]+" "+ WavBuffer[7]+" "
-					+ WavBuffer[8]+" "+ WavBuffer[9]+" "+ WavBuffer[10]+" "+ WavBuffer[11]+" "+ WavBuffer[12]+" "+ WavBuffer[13]+" "+ WavBuffer[14]+" "+ WavBuffer[15]+" ");
-
-			byte[] rawBuffer;
-//			if (num_of_channel==1) {		// mono ä��
-//				if (num_bits_of_sample ==8 ) {	// 8bit ����
-//					waveSynchPane.setWaveData(Buffer);
-//					frmUkeBpmSynchronizer.repaint();		// ���۸� �״�� �׳� �����ص� ��.
-//					return;
-//				} else {					// 16bit �����̸�, ���� 8��Ʈ�� ó��.
-//					rawBuffer = new byte[(byteRead/block_align)];
-//					for (int i=0; i<byteRead-block_align; i+= block_align ) {
-//						rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
-//					}
-//				}
-//			} else {		// stereo ä�� �Ǵ� ��ä��.	// ������ ���⼭�� 16bit �������� �Ǵ��ؾ� ������, �׳� 8bit �� ��쿡�� 1����Ʈ ���غ� ���̹Ƿ� �׳� �Ѿ��.
-				int block_align = 4;//((Header[33]&0xFF)<<8)+(Header[32]&0xFF);		// 1�� Sample �� byte ��. (= num_bytes_of_sample * num_of_channel )		//   ( num_of_channel * num_bits_of_sample/8 );			// num_of_channel
-				rawBuffer = new byte[((WavBuffer.length)/block_align)];
-				for (int i=0; i<(WavBuffer.length)-block_align; i+= block_align ) {
-					rawBuffer[i/block_align] = (byte) (Buffer[i+1]-128);		//	Buffer[i+1] �� �Ŵ�, 16bit ������ 8��Ʈ ���÷� ó���ϱ� ����. 
-				}
-//			}
-
-			waveSynchPane.setWaveData(rawBuffer);		//WavBuffer);
-        } catch (UnsupportedAudioFileException e1) {
-			// TODO Auto-generated catch block
-        	AudioFileFormat.Type types[] = AudioSystem.getAudioFileTypes();
-    		System.out.println("System supported audio type is ..");
-        	for (int i=0; i<types.length; i++) {
-        		System.out.println("\t"+types[i]);
-        	}
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-	*/
 	}
 
 	@SuppressWarnings("deprecation")
@@ -1032,6 +964,10 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 			waveSynchPane.setUkeData(data);
 			waveSynchPane.setWaveData(null);
 		}
+		//data.mBpm = Float.parseFloat(""+spnrBpm.getValue() );
+		spnrBpm.setValue(60);
+		//data.mStartOffset =  (int) Float.parseFloat(""+spnrOffset.getValue());
+		spnrOffset.setValue( 0 );
 	}
 
 	private void setAlbumImage(JLabel imageLabel, String filePath ) {
@@ -1051,7 +987,6 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 		tfSongTitle.setText(ukedata.getSongTitle() );
 		tfComment.setText(ukedata.getComment() );
 		spnrBpm.setValue(Float.valueOf(ukedata.mBpm));
-//		spnrOffset.setValue(Float.valueOf(200));
 		spnrOffset.setValue(Integer.valueOf(ukedata.mStartOffset));
 		waveSynchPane.setWaveOffset(ukedata.mStartOffset);
 	}
@@ -1084,11 +1019,10 @@ public class BpmSynchorWindow implements MouseListener, MouseMotionListener, Mou
 	public void mouseDragged(MouseEvent e) {
 		JPanel clickedView = (JPanel)e.getSource();
 		if (clickedView==waveSynchPane) {
-//			System.out.println("Dragging on waveform");
 			waveSynchPane.mouseDragged(e);
-			int x = e.getX();
-			int y = e.getY();
-			spnrOffset.setValue( Float.valueOf(x) );
+			//int x = e.getX();
+			//int y = e.getY();
+			//spnrOffset.setValue( Float.valueOf(x) );
 		}
 	}
 	public void mouseMoved(MouseEvent e) {
