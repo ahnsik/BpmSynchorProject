@@ -1,4 +1,6 @@
-# BpmSynchorProject (구상 중)
+# BpmSynchorProject (개발 중단 -->  Web기반 App 으로 변경됨)
+# -->  ahnsik/uke_blog 레포지토리에,  "new_edit" 브랜치로 구현했음.
+
 ---
  Tools for UkeTutor to make synchronized *uke with mp3.<br>
  우쿨렐레 연습기 프로그램 uketutor의 파일 형식 *.uke 파일에 MP3에 timestamp 를 동기화 하는 도구.<br>
